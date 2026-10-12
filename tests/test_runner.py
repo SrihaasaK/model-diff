@@ -1,6 +1,7 @@
 """The runner against a fake client shaped like the Anthropic SDK; no network."""
 
 import datetime as dt
+import json
 from pathlib import Path
 from types import SimpleNamespace as NS
 
@@ -11,7 +12,8 @@ import yaml
 
 from model_diff.config import load_config
 from model_diff.data.cases import Case, write_cases
-from model_diff.data.tasks import TaskSpec
+from model_diff.data.sample import summarize
+from model_diff.data.tasks import TaskFile, TaskSpec
 from model_diff.prompts import PromptBook
 from model_diff.record.chain import verify_run
 from model_diff.runner import Runner, check_resumable, create_run_dir, decide
@@ -87,13 +89,13 @@ class FakeMessages:
         return self.reply(request)
 
 
-def setup(tmp_path, cap: float = 1.0):
+def setup(tmp_path, cap: float = 1.0, judge_budget: float = 0.0):
     base = load_config(REPO / "config.yaml")
     cfg = base.model_copy(
         update={
             "n_runs": 2,
             "cost_cap_usd": cap,
-            "judge": base.judge.model_copy(update={"budget_usd": 0.0}),
+            "judge": base.judge.model_copy(update={"budget_usd": judge_budget}),
             "paths": base.paths.model_copy(update={"runs": tmp_path / "runs"}),
             "run": base.run.model_copy(update={"poll_interval_s": 0, "pilot_fraction": 0.2, "latency_probe_cases": 2}),
         }
@@ -108,7 +110,12 @@ def setup(tmp_path, cap: float = 1.0):
     cases = [Case(case_id=f"{t}-{i:05d}", task=t, input=f"Facts {i}", gold_label="Yes", license="CC BY 4.0") for t in tasks for i in range(10)]
     source = tmp_path / "cases.jsonl"
     write_cases(source, cases)
-    run_dir = create_run_dir(cfg, "test-run", {"cases.jsonl": source, "config.yaml": config_path}, book, {"models": []})
+    tasks_path = tmp_path / "tasks.yaml"
+    tasks_path.write_text(yaml.safe_dump(TaskFile(approved=True, tasks=tasks).model_dump(mode="json")))
+    meta_path = tmp_path / "cases.meta.json"
+    meta_path.write_text(json.dumps({"pool": summarize(cases)}))
+    files = {"cases.jsonl": source, "config.yaml": config_path, "tasks.yaml": tasks_path, "cases.meta.json": meta_path}
+    run_dir = create_run_dir(cfg, "test-run", files, book, {"retrieved_at": "2026-10-12T00:00:00+00:00", "models": []})
     return cfg, book, cases, run_dir
 
 

@@ -193,3 +193,64 @@ The report calls the A → C → D → B breakdown "sequential attribution along
 It states that factors can interact, so attributing along a different order of changes could split
 the shares differently. The path order is fixed by what the API allows (D12), not chosen to favour
 any factor.
+
+## D21. How refusals are decided (2026-10-12)
+
+1. A response whose `stop_reason` is `refusal` is a refusal, as the API itself declined.
+2. Any other response becomes a candidate if it cannot be parsed or matches a small rule set.
+   The rules cover phrases such as "I can't", "unable to provide", "not legal advice", and
+   "consult an attorney". The judge decides each candidate.
+3. If the judge is over budget, unavailable, or unparseable, the rule decides. Each decision
+   records its source (`api`, `judge`, or `rule`) in `refusals.json`.
+4. Every other response attempted the classification. Judge answers are recorded in the run's
+   hash chain and reused on later scoring, never re-asked.
+
+Rejected: rules alone, which miss polite deflections; asking the judge about every response,
+which costs more and adds judge noise to clean answers.
+
+## D22. Run-time safeguards added after an independent review (2026-10-12)
+
+A reviewer subagent audited the runner before any spend. Nothing critical was found; these fixes
+followed.
+
+- A batch's intent is saved before the create call, and the create is never retried blindly. If
+  creation fails or was interrupted, a batch created since the intent with the same request count
+  is adopted instead of resubmitted. This prevents double billing.
+- Before every batch and every direct call, recorded spend plus the estimated new work plus the
+  judge reserve must fit the cap. Direct work is priced at the standard rate.
+- A cap stop keeps the run's phase, so the run can be resumed after the cap is raised.
+- Resuming requires a verified chain and an unchanged job-defining config. Only the cost cap,
+  the judge budget, the poll interval, and paths may change.
+- An append cut short by a crash is set aside to `orphans.jsonl`, outside the chain, and its
+  request is re-sent.
+- A response from an unpinned model stops the run with an explicit reason.
+- One process at a time may run a given run directory.
+
+Rejected: a safety margin on the pilot projection. The author's rule is "projects at most 35
+USD", and the per-call guard is the backstop.
+
+## D23. Sending temperature with the 1.x SDK (2026-10-12)
+
+`anthropic` 1.x removed `temperature` from `messages.create()`. The API still accepts it for
+Sonnet 4.5. Direct calls therefore send it in `extra_body`, and batch requests keep it in each
+request's `params`, which the SDK forwards as given. Wire-level tests use the real SDK on a mock
+transport to show that `temperature` reaches the request body on both paths.
+
+The first launch failed client-side with a `TypeError` before any API call: no spend, and an empty
+run directory `runs/20261012T222724Z` left in place. The run reported on is `20261012T222853Z`.
+
+## D24. Pilot measurements (2026-10-12)
+
+The pilot measured these per-call means:
+
+| Arm | Input tokens | Output tokens | Thinking tokens |
+|---|---|---|---|
+| A | 304 | 64 | none |
+| B | 417 | 235 | 105 |
+| C | 304 | 66 | none |
+| D | 416 | 116 | 0 |
+
+Arm B's thinking came to 105 tokens per call, against the 1,000-token planning assumption. The
+re-projected total was 11.80 USD against the 35 USD cap, so all four arms continued. The
+assumption is kept in config as written; it was a planning number, and the pilot replaced it as
+designed.

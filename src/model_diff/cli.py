@@ -22,14 +22,20 @@ app = typer.Typer(
 CONFIG = typer.Option(Path("config.yaml"), "--config", "-c", help="Path to config.yaml.")
 
 
+def checked_client(cfg):
+    """An API client, after the startup check that every pinned model is available."""
+    from .api import check_models, list_models, make_client
+
+    client = make_client()
+    typer.echo("Pinned models:")
+    check_models(list_models(client), cfg, typer.echo)
+    return client
+
+
 @app.command()
 def models(config: Path = CONFIG) -> None:
     """Confirm every pinned model ID is available to this API key and print its status."""
-    from .api import check_models, list_models, make_client
-
-    cfg = load_config(config)
-    typer.echo("Pinned models:")
-    check_models(list_models(make_client()), cfg, typer.echo)
+    checked_client(load_config(config))
 
 
 @app.command("propose-tasks")
@@ -79,7 +85,6 @@ def sample(config: Path = CONFIG) -> None:
 @app.command("dry-run")
 def dry_run(config: Path = CONFIG) -> None:
     """Count input tokens exactly (free), price the run, and apply the cost cap. Makes no paid call."""
-    from .api import check_models, list_models, make_client
     from .estimate import count_input_tokens, estimate, pilot_cases, plan_arms, render
     from .prompts import PromptBook
 
@@ -90,6 +95,8 @@ def dry_run(config: Path = CONFIG) -> None:
     meta = json.loads(cfg.paths.cases.with_name("cases.meta.json").read_text(encoding="utf-8"))
     if meta["sha256"] != sha256_file(cfg.paths.cases):
         raise SystemExit(f"{cfg.paths.cases} changed since `model-diff sample`; re-run sample.")
+
+    from .api import check_models, list_models, make_client
 
     client = make_client()
     typer.echo("Pinned models:")
@@ -120,17 +127,14 @@ def run(
     run_id: str = typer.Option(None, "--run-id", help="Resume this run instead of starting a new one."),
 ) -> None:
     """Execute the run: preflight, pilot batch, cost re-projection, main batch, latency probes."""
-    from .api import check_models, list_models, make_client, models_snapshot
+    from .api import list_models, models_snapshot
     from .prompts import PromptBook
     from .runner import Runner, check_resumable, create_run_dir
 
     cfg = load_config(config)
     task_file = load_tasks(cfg.paths.tasks)
     require_approval(task_file, cfg.paths.tasks)
-    client = make_client()
-    typer.echo("Pinned models:")
-    listed = list_models(client)
-    check_models(listed, cfg, typer.echo)
+    client = checked_client(cfg)
 
     if run_id:
         # A resumed run is checked against its own frozen config and verified records.
@@ -166,7 +170,7 @@ def run(
             "cases.meta.json": cfg.paths.cases.with_name("cases.meta.json"),
             "dry_run.json": dry_path,
         }
-        run_dir = create_run_dir(cfg, run_id, files, current_book, models_snapshot(listed))
+        run_dir = create_run_dir(cfg, run_id, files, current_book, models_snapshot(list_models(client)))
         typer.echo(f"Started run {run_id} in {run_dir}")
 
     # From here on the run uses its frozen copies of the tasks, cases, and prompts.
@@ -176,6 +180,44 @@ def run(
     typer.echo(f"\nRun {run_id}: {status}. Recorded spend {runner.spent:.2f} USD. Chain head {runner.recorder.head}")
     if status != "complete":
         raise typer.Exit(code=2)
+
+
+@app.command()
+def score(run_id: str, config: Path = CONFIG) -> None:
+    """Decide refusals (rules plus judge), compute per-arm and per-task metrics, write scores.json."""
+    from .pipeline import score_run
+
+    cfg = load_config(config)
+    run_dir = cfg.paths.runs / run_id
+    scores = score_run(run_dir, checked_client(load_config(run_dir / "config.yaml")), typer.echo)
+    judge = scores["judge"]
+    typer.echo(f"Judge: {judge['asked_now']} refusal checks asked now, {judge['not_judged']} not judged; "
+               f"{judge['spent_usd']:.4f} USD judge spend in total.")
+    typer.echo(f"Wrote refusals.json, scores.json, and final_answers.csv in {run_dir}.")
+
+
+@app.command("diff")
+def diff_cmd(run_id: str, config: Path = CONFIG) -> None:
+    """Compare the headline arms case by case, have the judge describe each change, and attribute it."""
+    from .pipeline import diff_run, headline_lines
+
+    cfg = load_config(config)
+    run_dir = cfg.paths.runs / run_id
+    summary = diff_run(run_dir, checked_client(load_config(run_dir / "config.yaml")), typer.echo)
+    scores = json.loads((run_dir / "scores.json").read_text(encoding="utf-8"))
+    for line in headline_lines(scores, summary):
+        typer.echo(line)
+    typer.echo(f"Wrote diffs.csv, diffs_sample_for_review.csv, and diff_summary.json in {run_dir}.")
+
+
+@app.command()
+def report(run_id: str, config: Path = CONFIG) -> None:
+    """Write report.md and its two charts from a scored and diffed run. Offline: makes no API call."""
+    from .pipeline import report_run
+
+    cfg = load_config(config)
+    out = report_run(cfg.paths.runs / run_id)
+    typer.echo(f"Wrote {out}, accuracy_by_task.png, and diff_categories_by_task.png.")
 
 
 @app.command()

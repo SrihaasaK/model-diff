@@ -2,20 +2,34 @@
 
 Reproducible, tamper-evident evidence of what happens to compliance-sensitive classification
 outputs when an LLM provider upgrades a model. The first comparison runs Claude Sonnet 4.5
-(`claude-sonnet-4-5-20250929`) against Claude Sonnet 5.5 (`claude-sonnet-5-5`) on public
+(`claude-sonnet-4-5-20250929`) against Claude Sonnet 5.5 (`claude-sonnet-5-5`) on five public
 LegalBench tasks in insurance, tax, privacy, and consumer protection.
 
-## Status
+## What a run measures
 
-Stages 1 to 4 of 8 are built: the scaffold and tests, the dataset adapter and approved task list
-([`data/TASKS.md`](data/TASKS.md)), prompts and the hash-chained recorder, and the dry-run
-estimate. The run is paused for approval of that estimate. The paid run, scoring, diffing, and
-reporting are built after it.
+Four arms, defined in `config.yaml`:
 
-The comparison has four arms (see `config.yaml` and `DECISIONS.md` D12): A is Sonnet 4.5 at
-temperature 0, and B is Sonnet 5.5 at its API defaults; these two form the headline comparison.
-C (Sonnet 4.5 at temperature 1.0) and D (Sonnet 5.5 with thinking off) are controls. They
-attribute the A-to-B change to temperature, model, and thinking.
+| Arm | Model | Parameters | Role |
+|---|---|---|---|
+| A | Sonnet 4.5 | temperature 0 | headline baseline |
+| B | Sonnet 5.5 | API defaults (adaptive thinking; the API rejects temperature 0) | headline candidate |
+| C | Sonnet 4.5 | temperature 1.0 | control: isolates temperature |
+| D | Sonnet 5.5 | thinking off | control: isolates thinking |
+
+Each case goes to every arm three times with byte-identical prompts. For each arm and task the
+scorer reports:
+
+- accuracy against the reference labels, with Wilson 95% intervals;
+- the flag (positive-label) rate;
+- per-label precision and recall;
+- parse-failure, strict-format, and refusal rates;
+- latency and tokens;
+- the noise floor (how often two runs of the same arm disagree).
+
+The differ compares arm A's majority answers with arm B's, case by case. It sorts each case into
+`same`, `A_right_B_wrong`, `A_wrong_B_right`, `both_wrong_differently`, `format_drift`, or
+`refusal_change`, and has a judge model describe every change. It then attributes the change to
+temperature, model, and thinking by stepping along A → C → D → B.
 
 ## Setup
 
@@ -23,23 +37,76 @@ Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 
 ```sh
 uv sync
-echo 'ANTHROPIC_API_KEY=...' > .env   # gitignored; read only by the harness
-uv run model-diff models              # confirm the pinned model IDs are available
+cp .env.example .env    # then put your key in .env; it is gitignored and read only by the harness
 ```
 
-## Commands available now
+## Commands
 
 ```sh
-uv run model-diff models           # list pinned model IDs with lifecycle status (free API call)
-uv run model-diff propose-tasks    # screen LegalBench, re-check licenses, write data/TASKS.md
-uv run model-diff sample           # after approval: seeded sample to data/cases.jsonl
-uv run model-diff dry-run          # exact input tokens (free), expected cost, cap decision
-uv run model-diff verify <run_id>  # re-walk a run's hash chain offline; reports tamper or truncation
+uv run model-diff models                   # startup check: pinned model IDs exist (free)
+uv run model-diff propose-tasks            # screen LegalBench, re-check licenses, write data/TASKS.md
+uv run model-diff sample                   # after approval: seeded sample to data/cases.jsonl
+uv run model-diff dry-run                  # exact input tokens (free), expected cost, cap decision
+uv run model-diff run                      # preflight, pilot batch, cost re-projection, main batch, latency probes
+uv run model-diff run --run-id <run_id>    # resume an interrupted run without re-sending anything
+uv run model-diff score <run_id>           # refusal detection, metrics, noise floor
+uv run model-diff diff <run_id>            # change categories, judge descriptions, attribution, review sample
+uv run model-diff report <run_id>          # report.md and two charts (offline)
+uv run model-diff verify <run_id>          # re-walk the hash chain (offline)
 ```
 
-`sample`, and every paid command after it, refuses to run until `approved: true` is set in
-`data/tasks.yaml`. `dry-run` makes no paid call: it counts tokens with the free token-counting
-endpoint and writes `data/dry_run.json`.
+There are two human checkpoints. `sample` and every paid command refuse to run until
+`approved: true` is set in `data/tasks.yaml` after reviewing `data/TASKS.md`. `run` refuses a
+stale dry run, so the estimate you approve is the one the run uses.
+
+Cost is guarded three ways:
+
+- The dry run prices the run against `cost_cap_usd`.
+- The run's pilot batch re-projects the total from measured usage. If the projection is over
+  the cap, the arms in `drop_order` are dropped; if it is still over, the run stops.
+- Before every batch and every direct call, recorded spend plus the estimated new work plus the
+  judge's reserve must fit the cap.
+
+## Outputs
+
+Each run lives in `runs/<run_id>/`:
+
+| File | Contents |
+|---|---|
+| `run_config.json` | pinned model IDs, each arm's exact parameters, and the SHA-256 of every frozen input |
+| `config.yaml`, `tasks.yaml`, `cases.jsonl`, `cases.meta.json`, `prompts/`, `dry_run.json` | frozen copies of the inputs |
+| `models_snapshot.json` | the full models-list response when the run started |
+| `calls.jsonl` | one record per API call: model, parameters, prompt hash, raw response, parsed label, tokens, latency, timestamps |
+| `manifest.jsonl`, `HEAD.json` | the hash chain over `calls.jsonl` |
+| `state.json` | run progress, batch IDs, and the pilot's cost projection |
+| `refusals.json`, `scores.json`, `final_answers.csv` | scoring |
+| `diffs.csv`, `diffs_sample_for_review.csv`, `diff_summary.json` | diffs; the sample has blank `human_verdict` and `notes` columns |
+| `report.md`, `accuracy_by_task.png`, `diff_categories_by_task.png` | the report |
+
+## Tamper evidence
+
+The chain covers every record in `calls.jsonl`, judge calls included:
+
+- Each `manifest.jsonl` line holds the SHA-256 of one record and of the previous manifest line.
+- The first link hashes `run_config.json`, which holds the hashes of the frozen inputs and the
+  models snapshot.
+- `HEAD.json` records the count and last hash, so truncating both files is detectable.
+
+`verify` re-walks all of this offline and reports edits, deletions, reordering, truncation,
+changed inputs, and unpinned model IDs.
+
+Someone able to rewrite every file could rebuild a consistent chain. To anchor a run, publish
+its head hash; the report prints it. Any model ID outside the three pinned in config is refused
+when a record is written. So is a response from a model other than the one requested.
+
+## Bring your own cases
+
+Any corpus with one JSON object per line holding `case_id`, `task`, `input`, `gold_label`, and
+`license` works without code changes:
+
+1. Set `corpus.adapter: jsonl` and `corpus.path` in `config.yaml`.
+2. Describe each task's labels, flag labels, and prompt family in the task file.
+3. Add a `prompts/<family>.txt` with a `{{LABELS}}` placeholder.
 
 ## Tests
 
@@ -47,19 +114,15 @@ endpoint and writes `data/dry_run.json`.
 uv run pytest
 ```
 
-Tests use small synthetic fixtures in `tests/fixtures/` and make no network calls.
-
-## Bringing your own cases
-
-Any corpus with one JSON object per line holding `case_id`, `task`, `input`, `gold_label`, and
-`license` works without code changes. Set `corpus.adapter: jsonl` and `corpus.path` in
-`config.yaml`, and describe each task's labels and prompt family in the task file.
+The suite makes no network calls. It uses small synthetic fixtures, a fake client shaped like
+the Anthropic SDK (covering run, resume, cap stops, batch adoption, score, diff, report, and
+verify end to end), and the real SDK on a mock transport to check exactly what is sent.
 
 ## Data and licensing
 
 Cases come from [LegalBench](https://huggingface.co/datasets/nguha/legalbench) at a pinned
-commit. Each task's license is recorded in `data/TASKS.md`. All proposed tasks are CC BY 4.0
-or MIT; CC BY tasks require attribution in anything published from them. Sampled cases and run
+commit. Each task's license is recorded in `data/TASKS.md`; all five tasks are CC BY 4.0 or MIT,
+and the CC BY tasks require attribution in anything published from them. Sampled cases and run
 outputs quote that public text, so `data/cases.jsonl` and `runs/` are gitignored and regenerate
 deterministically from `config.yaml`.
 
