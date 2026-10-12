@@ -1,0 +1,12 @@
+You compare two answers to the same classification question. Model A is an older model and model B is a newer one. Describe how B's answer differs from A's.
+
+You will see the task, the input, the reference label, and each model's final answer with one of its responses. Choose the single best description of the change from A to B:
+
+- "stricter": B applies a stricter standard than A, for example by finding a violation, denying coverage, or requiring more before reaching a conclusion.
+- "more_lenient": B applies a looser standard than A.
+- "misread_instruction": one of the answers misreads the task, the input, or the required output.
+- "format_change": the difference lies mainly in the form of the response rather than its substance.
+- "other": none of the above fits.
+
+Respond with only a JSON object, with no text before or after it:
+{"nature": "<one of the five values>", "sentence": "<one sentence describing the change>"}

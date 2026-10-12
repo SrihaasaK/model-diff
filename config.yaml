@@ -1,10 +1,13 @@
 # model-diff run configuration. Every model ID is pinned here and copied into
 # each call record; a run refuses to continue if these IDs change under it.
 
-model_a: claude-sonnet-4-5-20250929   # baseline snapshot (deprecated; end of life 2026-11-30)
+model_a: claude-sonnet-4-5-20250929   # baseline snapshot (API reference: deprecated, end of life 2026-11-30)
 model_b: claude-sonnet-5-5            # current Sonnet as of 2026-10
-judge_model: claude-haiku-4-5-20251001
+judge_model: claude-haiku-5-5
 
+# Shared request parameters. Each arm starts from these and applies its own
+# overrides; a null override removes the parameter from that arm's requests.
+# Every record stores the exact parameters that were sent.
 temperature: 0
 max_tokens: 512
 n_runs: 3
@@ -12,25 +15,46 @@ seed: 42
 cases_per_task: 200
 cost_cap_usd: 25
 
-# Shared request parameters above are sent to both subject models. A model that
-# rejects one of them gets a per-role override here; a null value removes the
-# parameter from that model's requests. Every record stores the exact
-# parameters that were sent.
-overrides:
-  model_a: {}
-  model_b:
-    # Claude Sonnet 5.5 rejects any temperature other than the default 1.0 with
-    # a 400 error, so it runs at the API default (1.0).
-    temperature: null
-    # Sonnet 5.5 thinks before answering unless told not to; between_tools is
-    # its documented "no up-front thinking" setting, which matches Sonnet 4.5's
-    # default of no thinking.
-    thinking: {type: between_tools}
+# A vs B is the headline "real migration" comparison. C and D are controls that
+# each change one factor. The path A -> C -> D -> B changes temperature, then
+# the model, then thinking, and is used to attribute the A-vs-B disagreement.
+arms:
+  A:
+    model: model_a
+    label: Sonnet 4.5, temperature 0
+    overrides: {}
+  B:
+    model: model_b
+    label: Sonnet 5.5, API defaults
+    thinking_expected: true   # cost planning only: default adaptive thinking bills as output
+    overrides:
+      temperature: null       # Sonnet 5.5 rejects any temperature but the default 1.0
+      max_tokens: 16000       # thinking counts toward max_tokens; 512 would truncate it
+  C:
+    model: model_a
+    label: Sonnet 4.5, temperature 1.0
+    overrides:
+      temperature: 1.0
+  D:
+    model: model_b
+    label: Sonnet 5.5, thinking off
+    overrides:
+      temperature: null
+      thinking: {type: between_tools}   # documented "no up-front thinking" setting
+
+headline: [A, B]
+decomposition:
+  path: [A, C, D, B]
+  factors: [temperature, model, thinking]
+drop_order: [D]   # if the estimate exceeds cost_cap_usd, drop these arms in order, then stop
 
 judge:
-  temperature: 0
   max_tokens: 300
-  budget_usd: 2.0          # hard ceiling on judge spend per run; included in the cost estimate
+  overrides:
+    # Haiku 5.5 rejects non-default temperature and thinks by default; turning
+    # thinking off is accepted at its default effort (medium).
+    thinking: {type: disabled}
+  budget_usd: 1.0   # hard ceiling on judge spend per run; included in the estimate
 
 corpus:
   adapter: legalbench      # "legalbench" or "jsonl"
@@ -48,8 +72,11 @@ paths:
 run:
   use_batch: true
   poll_interval_s: 60
-  latency_probe_cases: 10  # sequential calls per task per subject model, used only for latency
-  expected_output_tokens: 160  # planning assumption for the "expected" estimate; the cap uses max_tokens
+  pilot_fraction: 0.05         # share of cases run first; their measured usage re-projects the cost
+  latency_probe_cases: 10      # sequential calls per task per arm, used only for latency
+  expected_output_tokens: 100  # planning assumption for the visible answer (JSON with one-sentence rationale)
+  planning_thinking_tokens: 1000         # planning assumption for arms with thinking_expected
+  thinking_scenarios: [0, 250, 500, 1000, 2000, 4000]
 
 # USD per million tokens, standard tier. The Batch API bills 50% of these.
 # Source: https://platform.claude.com/docs/en/about-claude/pricing (retrieved 2026-10-12).
@@ -58,4 +85,4 @@ pricing:
   models:
     claude-sonnet-4-5-20250929: {input: 3.00, output: 15.00}
     claude-sonnet-5-5: {input: 2.00, output: 10.00}
-    claude-haiku-4-5-20251001: {input: 1.00, output: 5.00}
+    claude-haiku-5-5: {input: 0.10, output: 0.50}   # prompts up to 100K tokens

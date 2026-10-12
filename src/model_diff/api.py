@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import random
 import time
 from dataclasses import asdict, dataclass
@@ -32,20 +33,33 @@ class ModelStatus:
         return asdict(self)
 
 
-def check_models(client: anthropic.Anthropic, cfg: Config, echo: Callable[[str], None] = print) -> list[ModelStatus]:
-    """List the account's models and confirm every pinned ID is callable.
+def list_models(client: anthropic.Anthropic) -> list:
+    """Every model the API reports for this key, including deprecated and retired ones."""
+    return with_backoff(
+        lambda: list(client.models.list(lifecycle=["active", "deprecated", "retired"], limit=1000))
+    )
+
+
+def models_snapshot(listed: list) -> dict:
+    """The models-list response as JSON, for storing beside run outputs."""
+    return {
+        "retrieved_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "endpoint": "GET /v1/models?lifecycle=active,deprecated,retired",
+        "models": [m.model_dump(mode="json") for m in listed],
+    }
+
+
+def check_models(listed: list, cfg: Config, echo: Callable[[str], None] = print) -> list[ModelStatus]:
+    """Confirm every pinned ID is listed and not retired, and print each one's status.
 
     Exits with a clear message if model_a (the model being retired) is gone,
     or if model_b or the judge is missing.
     """
-    listed = {
-        m.id: m
-        for m in with_backoff(lambda: list(client.models.list(lifecycle=["active", "deprecated"], limit=1000)))
-    }
+    by_id = {m.id: m for m in listed if m.lifecycle != "retired"}
     pinned = [("model_a", cfg.model_a), ("model_b", cfg.model_b), ("judge_model", cfg.judge_model)]
     statuses: list[ModelStatus] = []
     for role, model_id in pinned:
-        info = listed.get(model_id)
+        info = by_id.get(model_id)
         if info is None:
             if role == "model_a":
                 raise SystemExit(
@@ -54,7 +68,7 @@ def check_models(client: anthropic.Anthropic, cfg: Config, echo: Callable[[str],
                     "wrong. The comparison cannot run without it; existing runs can still be "
                     "scored, reported, and verified offline."
                 )
-            raise SystemExit(f"{role} '{model_id}' is not in the models list for this API key.")
+            raise SystemExit(f"{role} '{model_id}' is not available (not listed, or retired) for this API key.")
         retires = info.retires_at.date().isoformat() if info.retires_at else None
         statuses.append(ModelStatus(role, model_id, info.display_name, info.lifecycle, retires))
     for s in statuses:

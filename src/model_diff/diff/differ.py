@@ -1,9 +1,13 @@
-"""Compare model A's and model B's final answers case by case."""
+"""Compare two arms' final answers case by case, and attribute the headline change to factors.
+
+In a pair (base, other), "A" in the category names means the base arm and "B"
+the other arm; for the headline pair they are literally arms A and B.
+"""
 
 from __future__ import annotations
 
 import random
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass
 from itertools import product
 from statistics import mean
@@ -19,13 +23,15 @@ CATEGORIES = (
     "refusal_change",
 )
 
+Answers = dict[tuple[str, str], FinalAnswer]
+
 
 def classify(a: FinalAnswer, b: FinalAnswer) -> str:
-    """Category of the change from A's final answer to B's.
+    """Category of the change from the base answer a to the other answer b.
 
     Precedence: a refusal on one side only is refusal_change; otherwise an
     unparseable answer on one side only is format_drift. Equal labels are
-    same, unless one model's repeats mostly broke the strict JSON format and
+    same, unless one side's repeats mostly broke the strict JSON format and
     the other's did not, which is also format_drift. Different labels are
     judged against gold.
     """
@@ -66,14 +72,18 @@ class DiffRow:
         return asdict(self)
 
 
-def diff_answers(answers: dict[tuple[str, str], FinalAnswer]) -> list[DiffRow]:
-    case_ids = sorted({case_id for _, case_id in answers})
-    missing = [c for c in case_ids if ("model_a", c) not in answers or ("model_b", c) not in answers]
+def _paired_cases(answers: Answers, arms: list[str]) -> list[str]:
+    case_ids = sorted({case_id for arm, case_id in answers if arm in arms})
+    missing = [c for c in case_ids if any((arm, c) not in answers for arm in arms)]
     if missing:
-        raise ValueError(f"{len(missing)} cases lack an answer from one model, e.g. {missing[:3]}")
+        raise ValueError(f"{len(missing)} cases lack an answer from one of {arms}, e.g. {missing[:3]}")
+    return case_ids
+
+
+def diff_answers(answers: Answers, base: str, other: str) -> list[DiffRow]:
     rows = []
-    for case_id in case_ids:
-        a, b = answers[("model_a", case_id)], answers[("model_b", case_id)]
+    for case_id in _paired_cases(answers, [base, other]):
+        a, b = answers[(base, case_id)], answers[(other, case_id)]
         rows.append(
             DiffRow(
                 case_id=case_id,
@@ -93,23 +103,83 @@ def diff_answers(answers: dict[tuple[str, str], FinalAnswer]) -> list[DiffRow]:
     return rows
 
 
-def cross_model_disagreement(answers: dict[tuple[str, str], FinalAnswer]) -> dict[str, float]:
-    """Mean share of (A repeat, B repeat) pairs that disagree, by task and pooled.
+def _by_task(values: list[tuple[str, float]]) -> dict[str, float]:
+    grouped: dict[str, list[float]] = defaultdict(list)
+    for task, value in values:
+        grouped[task].append(value)
+        grouped[ALL_TASKS].append(value)
+    return {task: mean(v) for task, v in grouped.items()}
 
-    This is the cross-model counterpart of each model's noise floor: if it is
-    no higher than the noise floors, single runs of A and B disagree about as
-    often as two runs of the same model do.
+
+def final_disagreement(answers: Answers, base: str, other: str) -> dict[str, float]:
+    """Share of cases whose final (majority) answers differ, by task and pooled."""
+    return _by_task(
+        [
+            (answers[(base, c)].task, float(answers[(base, c)].outcome != answers[(other, c)].outcome))
+            for c in _paired_cases(answers, [base, other])
+        ]
+    )
+
+
+def single_run_disagreement(answers: Answers, base: str, other: str) -> dict[str, float]:
+    """Mean share of (base repeat, other repeat) pairs that disagree, by task and pooled.
+
+    This is the cross-arm counterpart of each arm's noise floor: if it is no
+    higher than the noise floors, single runs of the two arms disagree about as
+    often as two runs of the same arm do.
     """
-    shares: dict[str, list[float]] = defaultdict(list)
-    for (role, case_id), a in answers.items():
-        if role != "model_a" or ("model_b", case_id) not in answers:
-            continue
-        b = answers[("model_b", case_id)]
+    values = []
+    for c in _paired_cases(answers, [base, other]):
+        a, b = answers[(base, c)], answers[(other, c)]
         pairs = list(product(a.votes, b.votes))
-        share = sum(x != y for x, y in pairs) / len(pairs)
-        shares[a.task].append(share)
-        shares[ALL_TASKS].append(share)
-    return {task: mean(values) for task, values in shares.items()}
+        values.append((a.task, sum(x != y for x, y in pairs) / len(pairs)))
+    return _by_task(values)
+
+
+def decompose(answers: Answers, path: list[str], factors: list[str]) -> dict:
+    """Attribute cases where the first and last arms' final answers differ to the steps between them.
+
+    Each step along the path changes one factor. For every case whose answer
+    differs between path[0] and path[-1], the steps whose two arms give
+    different final answers are the factors that moved it. A factor "explains"
+    a case alone when it is the only step that changed; it is "involved" when
+    its step changed along with others. Steps can also change an answer and
+    change it back; such cases do not count toward the first-to-last change.
+    """
+    case_ids = _paired_cases(answers, path)
+    changed_cases = [c for c in case_ids if answers[(path[0], c)].outcome != answers[(path[-1], c)].outcome]
+    only: Counter[str] = Counter()
+    involved: Counter[str] = Counter()
+    combinations: Counter[str] = Counter()
+    for c in changed_cases:
+        moved = [
+            factor
+            for factor, (x, y) in zip(factors, zip(path, path[1:]))
+            if answers[(x, c)].outcome != answers[(y, c)].outcome
+        ]
+        combinations["+".join(moved)] += 1
+        involved.update(moved)
+        if len(moved) == 1:
+            only[moved[0]] += 1
+    steps = [
+        {
+            "factor": factor,
+            "from": x,
+            "to": y,
+            "final_disagreement": final_disagreement(answers, x, y)[ALL_TASKS],
+            "single_run_disagreement": single_run_disagreement(answers, x, y)[ALL_TASKS],
+        }
+        for factor, (x, y) in zip(factors, zip(path, path[1:]))
+    ]
+    return {
+        "path": path,
+        "n_cases": len(case_ids),
+        "n_changed": len(changed_cases),
+        "steps": steps,
+        "only": {f: only[f] for f in factors},
+        "involved": {f: involved[f] for f in factors},
+        "combinations": dict(sorted(combinations.items(), key=lambda kv: (-kv[1], kv[0]))),
+    }
 
 
 def allocate(sizes: dict[str, int], n: int) -> dict[str, int]:

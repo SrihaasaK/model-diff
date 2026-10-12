@@ -7,10 +7,15 @@ LegalBench tasks in insurance, tax, privacy, and consumer protection.
 
 ## Status
 
-Stages 1 and 2 of 8 are built: the scaffold and tests, then the dataset adapter and task
-proposal. The run is paused for approval of the task list in [`data/TASKS.md`](data/TASKS.md).
-Prompts, the recorder, the dry-run estimate, the paid run, scoring, diffing, reporting, and
-verification are built after that approval.
+Stages 1 to 4 of 8 are built: the scaffold and tests, the dataset adapter and approved task list
+([`data/TASKS.md`](data/TASKS.md)), prompts and the hash-chained recorder, and the dry-run
+estimate. The run is paused for approval of that estimate. The paid run, scoring, diffing, and
+reporting are built after it.
+
+The comparison has four arms (see `config.yaml` and `DECISIONS.md` D12): A is Sonnet 4.5 at
+temperature 0, and B is Sonnet 5.5 at its API defaults; these two form the headline comparison.
+C (Sonnet 4.5 at temperature 1.0) and D (Sonnet 5.5 with thinking off) are controls. They
+attribute the A-to-B change to temperature, model, and thinking.
 
 ## Setup
 
@@ -28,10 +33,13 @@ uv run model-diff models              # confirm the pinned model IDs are availab
 uv run model-diff models           # list pinned model IDs with lifecycle status (free API call)
 uv run model-diff propose-tasks    # screen LegalBench, re-check licenses, write data/TASKS.md
 uv run model-diff sample           # after approval: seeded sample to data/cases.jsonl
+uv run model-diff dry-run          # exact input tokens (free), expected cost, cap decision
+uv run model-diff verify <run_id>  # re-walk a run's hash chain offline; reports tamper or truncation
 ```
 
 `sample`, and every paid command after it, refuses to run until `approved: true` is set in
-`data/tasks.yaml`.
+`data/tasks.yaml`. `dry-run` makes no paid call: it counts tokens with the free token-counting
+endpoint and writes `data/dry_run.json`.
 
 ## Tests
 

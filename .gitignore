@@ -16,3 +16,4 @@ data/dry_run.json
 runs/
 
 .DS_Store
+data/token_counts.jsonl

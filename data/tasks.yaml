@@ -8,8 +8,8 @@
 # positive_labels: the affirmative answer to the task's question. The "flag
 # rate" in reports is the share of cases whose final answer is one of these.
 
-approved: false
-approved_on: null
+approved: true
+approved_on: "2026-10-12"  # approved by the author as listed, with reporting changes logged in DECISIONS.md D12-D16
 
 tasks:
   insurance_policy_interpretation:

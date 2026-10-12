@@ -2,20 +2,38 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, Field, model_validator
 
-SubjectRole = Literal["model_a", "model_b"]
-SUBJECT_ROLES: tuple[SubjectRole, ...] = ("model_a", "model_b")
+ModelRole = Literal["model_a", "model_b"]
+
+
+class ArmConfig(BaseModel):
+    model: ModelRole
+    label: str
+    overrides: dict[str, Any] = Field(default_factory=dict)
+    thinking_expected: bool = False  # cost planning only: the arm's output includes thinking tokens
+
+
+class Decomposition(BaseModel):
+    path: list[str]  # arms, each step changing one factor
+    factors: list[str]  # the factor each step changes
+
+    @model_validator(mode="after")
+    def _one_factor_per_step(self) -> "Decomposition":
+        if len(self.factors) != len(self.path) - 1:
+            raise ValueError("decomposition needs exactly one factor per step along the path")
+        return self
 
 
 class JudgeConfig(BaseModel):
-    temperature: float = 0
     max_tokens: int = 300
-    budget_usd: float = 2.0
+    overrides: dict[str, Any] = Field(default_factory=dict)
+    budget_usd: float = 1.0
 
 
 class CorpusConfig(BaseModel):
@@ -36,8 +54,11 @@ class PathsConfig(BaseModel):
 class RunSettings(BaseModel):
     use_batch: bool = True
     poll_interval_s: int = 60
+    pilot_fraction: float = Field(default=0.05, gt=0, le=1)
     latency_probe_cases: int = 10
-    expected_output_tokens: int = 160
+    expected_output_tokens: int = 100
+    planning_thinking_tokens: int = 1000
+    thinking_scenarios: list[int] = Field(default_factory=lambda: [0, 500, 1000, 2000])
 
 
 class Price(BaseModel):
@@ -60,7 +81,10 @@ class Config(BaseModel):
     seed: int = 42
     cases_per_task: int = Field(ge=1)
     cost_cap_usd: float = Field(gt=0)
-    overrides: dict[SubjectRole, dict[str, Any]] = Field(default_factory=dict)
+    arms: dict[str, ArmConfig]
+    headline: tuple[str, str]
+    decomposition: Decomposition | None = None
+    drop_order: list[str] = Field(default_factory=list)
     judge: JudgeConfig = JudgeConfig()
     corpus: CorpusConfig
     paths: PathsConfig = PathsConfig()
@@ -68,7 +92,18 @@ class Config(BaseModel):
     pricing: PricingConfig
 
     @model_validator(mode="after")
-    def _every_model_has_a_price(self) -> "Config":
+    def _consistent(self) -> "Config":
+        bad_names = [a for a in self.arms if not re.fullmatch(r"[A-Za-z0-9]{1,8}", a)]
+        if bad_names:
+            raise ValueError(f"arm names must be 1-8 letters or digits: {bad_names}")
+        referenced = set(self.headline) | set(self.drop_order)
+        if self.decomposition:
+            referenced |= set(self.decomposition.path)
+        unknown = referenced - set(self.arms)
+        if unknown:
+            raise ValueError(f"unknown arms referenced: {sorted(unknown)}")
+        if set(self.headline) & set(self.drop_order):
+            raise ValueError("headline arms cannot be in drop_order")
         missing = [m for m in self.pinned_model_ids() if m not in self.pricing.models]
         if missing:
             raise ValueError(f"pricing.models has no entry for: {', '.join(sorted(missing))}")
@@ -76,37 +111,39 @@ class Config(BaseModel):
             raise ValueError("corpus.path is required when corpus.adapter is 'jsonl'")
         return self
 
-    def model_id(self, role: SubjectRole) -> str:
-        return self.model_a if role == "model_a" else self.model_b
-
     def pinned_model_ids(self) -> set[str]:
         return {self.model_a, self.model_b, self.judge_model}
 
-    def request_params(self, role: SubjectRole) -> dict[str, Any]:
-        """Parameters sent with every subject request for this role, excluding prompts.
+    def arm_model(self, arm: str) -> str:
+        return self.model_a if self.arms[arm].model == "model_a" else self.model_b
 
-        Shared parameters come first; the role's overrides replace them, and a
+    def arm_params(self, arm: str) -> dict[str, Any]:
+        """Parameters sent with every request in this arm, excluding prompts.
+
+        Shared parameters come first; the arm's overrides replace them, and a
         null override removes the parameter entirely.
         """
         params: dict[str, Any] = {"max_tokens": self.max_tokens, "temperature": self.temperature}
-        for key, value in self.overrides.get(role, {}).items():
-            if value is None:
-                params.pop(key, None)
-            else:
-                params[key] = value
-        return {"model": self.model_id(role), **params}
+        _apply(params, self.arms[arm].overrides)
+        return {"model": self.arm_model(arm), **params}
 
     def judge_params(self) -> dict[str, Any]:
-        return {
-            "model": self.judge_model,
-            "max_tokens": self.judge.max_tokens,
-            "temperature": self.judge.temperature,
-        }
+        params: dict[str, Any] = {"max_tokens": self.judge.max_tokens}
+        _apply(params, self.judge.overrides)
+        return {"model": self.judge_model, **params}
 
-    def cost_usd(self, model_id: str, input_tokens: int, output_tokens: int, batch: bool) -> float:
+    def cost_usd(self, model_id: str, input_tokens: float, output_tokens: float, batch: bool) -> float:
         price = self.pricing.models[model_id]
         factor = self.pricing.batch_discount if batch else 1.0
         return factor * (input_tokens * price.input + output_tokens * price.output) / 1_000_000
+
+
+def _apply(params: dict[str, Any], overrides: dict[str, Any]) -> None:
+    for key, value in overrides.items():
+        if value is None:
+            params.pop(key, None)
+        else:
+            params[key] = value
 
 
 def load_config(path: Path = Path("config.yaml")) -> Config:

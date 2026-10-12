@@ -1,6 +1,6 @@
 # Proposed LegalBench tasks
 
-Status: **awaiting approval** (`approved: false` in `data/tasks.yaml`).
+Status: **approved** (`approved: true` in `data/tasks.yaml`).
 
 Source: Hugging Face `nguha/legalbench` at commit `daec8237410a`, `test` split. Licenses are read from each task's card in the LegalBench repository at commit `b46bf4ffae90` and were re-checked by `model-diff propose-tasks` on 2026-10-12.
 

@@ -91,3 +91,90 @@ model provider, the dataset host, and the code host (needed to cite the SDK, the
 data sources the brief itself names). Text quoted from public datasets can mention companies
 (for example, website names in terms-of-service clauses), so sampled cases and run outputs are
 gitignored. A screened-out task whose identifier is a company name is referenced by hash only.
+
+## D12. Four arms and attribution of the headline change (2026-10-12, author request)
+
+The run compares four arms built from the two pinned models:
+
+| Arm | Model | Parameters |
+|---|---|---|
+| A | Sonnet 4.5 | temperature 0 |
+| B | Sonnet 5.5 | API defaults: no temperature (1.0), default adaptive thinking, default effort |
+| C | Sonnet 4.5 | temperature 1.0 |
+| D | Sonnet 5.5 | temperature 1.0 (only accepted value), thinking off (`between_tools`) |
+
+A vs B is the headline "real migration" comparison. The path A → C → D → B changes one factor per
+step: temperature, then model, then thinking. For each case whose final answer differs between A
+and B, the report lists which steps changed the answer. A factor *explains* a case alone when its
+step is the only one that changed; it is *involved* when its step changed along with others. Each
+step's disagreement rate is reported next to the arms' noise floors, because at temperature 1.0
+some step-to-step change is sampling noise. This path is the only one available: Sonnet 5.5
+cannot run at temperature 0, so the temperature step has to happen on Sonnet 4.5. Rejected:
+order-averaged (Shapley-style) attribution, which needs arms that cannot exist here, such as
+Sonnet 5.5 at temperature 0. Arm D is dropped first if the estimate exceeds the cap; without it,
+only the combined model-and-thinking step (C → B) can be reported.
+
+This supersedes D4's choice of turning thinking off for model B. That configuration is now arm D,
+and the headline arm B uses the API defaults a migrating customer would get.
+
+## D13. Arm B's max_tokens (2026-10-12)
+
+`max_tokens` is required, so it has no API default. Adaptive thinking counts toward it, so arm B
+uses 16,000 instead of the shared 512. Any arm-B response that still stops at `max_tokens` is
+recorded with that stop reason and scored as a parse failure if no label survives.
+
+## D14. Reweighting for unfair_tos (2026-10-12, author request)
+
+`unfair_tos` keeps stratified sampling, so per-label precision and recall have support. Its flag
+rate ("any unfair": any label except Other) is also reported post-stratified. The rate within each
+gold label is weighted by that label's share of the full 3,813-clause test split, which
+`model-diff sample` records in `data/cases.meta.json`. Accuracy is reweighted the same way. The
+headline uses the pooled "any unfair" flag; per-category results are labelled exploratory. Pooled
+all-task accuracy is computed over the sample as drawn and says so.
+
+## D15. Judge model (2026-10-12, author request)
+
+The judge is `claude-haiku-5-5`, replacing `claude-haiku-4-5-20251001` because of retirement risk.
+On 2026-10-12 the models endpoint listed it as `active` and reported that thinking can be disabled.
+It rejects non-default temperature, so judge calls omit `temperature` and send `thinking: disabled`
+(accepted at its default effort, medium). Judge outputs are therefore not deterministic, so every
+judge call is recorded and reused, never re-asked. Price: 0.10 / 0.50 USD per million input /
+output tokens for prompts under 100K tokens.
+
+## D16. Models-list snapshot (2026-10-12, author request)
+
+Each run stores the full `GET /v1/models` response (active, deprecated, and retired models) as
+`models_snapshot.json` in its run directory. Its SHA-256 is frozen in `run_config.json`, which is
+the first link of the hash chain. On 2026-10-12 the endpoint reported Sonnet 4.5 as `active` with
+no `deprecated_at` or `retires_at`. The Messages API reference lists it as deprecated, with end
+of life on 2026-11-30.
+
+## D17. Cost estimate and cap enforcement (2026-10-12)
+
+The dry run counts input tokens exactly with the free token-counting endpoint, for each model.
+Sonnet 5.5 counts 36% more tokens than Sonnet 4.5 for the same prompts. Output is planned at 100
+visible tokens per call, plus 1,000 thinking tokens per call for arm B. Arm B's thinking length is
+the main unknown: the estimate prints a sensitivity table and the thinking length at which the
+cap is reached. The cap is applied to the expected total, judge ceiling included, and arms are
+dropped in `drop_order` (D) until it fits.
+
+Because the assumption could be wrong, the run enforces the cap with measurements:
+
+1. One preflight call per arm with its exact parameters.
+2. A pilot batch: 5% of each task's cases, every arm, every repeat.
+3. A re-projection of the full run from the pilot's measured usage. If the projection exceeds the
+   cap, arm D's remaining requests are dropped; if it still exceeds the cap, the run stops before
+   any further spending.
+4. The remaining batch, then the latency probes.
+
+Rejected:
+
+- A paid calibration call before the author approved the estimate.
+- Capping arm B's `max_tokens` to bound the worst case. That would truncate thinking and corrupt
+  the arm being measured.
+
+## D18. Latency probes (2026-10-12)
+
+Batch results carry no per-request latency. Latency is measured with sequential calls on the
+first 10 cases of each task, for every arm, recorded as `kind: latency_probe`, billed at standard
+rates, and excluded from accuracy.

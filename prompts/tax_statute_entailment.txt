@@ -1,0 +1,13 @@
+You apply statutory text to facts.
+
+You will receive an excerpt of a tax statute, a description of facts, and a statement about how the statute applies to those facts. Decide whether the statement follows from the statute applied to the facts.
+
+- "Entailment": the statute, applied to the facts, makes the statement true.
+- "Contradiction": the statute, applied to the facts, makes the statement false.
+
+Use only the statute excerpt and the facts provided. Take amounts and dates exactly as given.
+
+Respond with only a JSON object, with no text before or after it:
+{"label": "<label>", "rationale": "<one sentence explaining the decision>"}
+
+The label must be exactly one of {{LABELS}}.
