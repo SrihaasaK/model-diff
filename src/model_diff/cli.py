@@ -115,6 +115,70 @@ def dry_run(config: Path = CONFIG) -> None:
 
 
 @app.command()
+def run(
+    config: Path = CONFIG,
+    run_id: str = typer.Option(None, "--run-id", help="Resume this run instead of starting a new one."),
+) -> None:
+    """Execute the run: preflight, pilot batch, cost re-projection, main batch, latency probes."""
+    from .api import check_models, list_models, make_client, models_snapshot
+    from .prompts import PromptBook
+    from .runner import Runner, check_resumable, create_run_dir
+
+    cfg = load_config(config)
+    task_file = load_tasks(cfg.paths.tasks)
+    require_approval(task_file, cfg.paths.tasks)
+    client = make_client()
+    typer.echo("Pinned models:")
+    listed = list_models(client)
+    check_models(listed, cfg, typer.echo)
+
+    if run_id:
+        # A resumed run is checked against its own frozen config and verified records.
+        run_dir = cfg.paths.runs / run_id
+        if not run_dir.is_dir():
+            raise SystemExit(f"No run directory at {run_dir}")
+        check_resumable(run_dir, cfg)
+        typer.echo(f"Resuming run {run_id}")
+    else:
+        dry_path = cfg.paths.cases.with_name("dry_run.json")
+        if not dry_path.exists():
+            raise SystemExit("No dry-run estimate found. Run `model-diff dry-run` first.")
+        dry = json.loads(dry_path.read_text(encoding="utf-8"))
+        current_book = PromptBook(cfg.paths.prompts, task_file.tasks)
+        stale = [
+            name
+            for name, fresh in (
+                ("config.yaml", dry["config_sha256"] == sha256_file(config)),
+                ("cases", dry["cases_sha256"] == sha256_file(cfg.paths.cases)),
+                ("prompts", dry["prompts"] == current_book.digest()),
+            )
+            if not fresh
+        ]
+        if stale:
+            raise SystemExit(f"The dry-run estimate is out of date ({', '.join(stale)} changed). Re-run `model-diff dry-run`.")
+        if dry["status"] == "over_cap":
+            raise SystemExit("The dry-run estimate is over the cost cap; the run will not start.")
+        run_id = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        files = {
+            "config.yaml": config,
+            "tasks.yaml": cfg.paths.tasks,
+            "cases.jsonl": cfg.paths.cases,
+            "cases.meta.json": cfg.paths.cases.with_name("cases.meta.json"),
+            "dry_run.json": dry_path,
+        }
+        run_dir = create_run_dir(cfg, run_id, files, current_book, models_snapshot(listed))
+        typer.echo(f"Started run {run_id} in {run_dir}")
+
+    # From here on the run uses its frozen copies of the tasks, cases, and prompts.
+    frozen_tasks = load_tasks(run_dir / "tasks.yaml").tasks
+    runner = Runner(cfg, client, run_dir, PromptBook(run_dir / "prompts", frozen_tasks), read_cases(run_dir / "cases.jsonl"), typer.echo)
+    status = runner.execute()
+    typer.echo(f"\nRun {run_id}: {status}. Recorded spend {runner.spent:.2f} USD. Chain head {runner.recorder.head}")
+    if status != "complete":
+        raise typer.Exit(code=2)
+
+
+@app.command()
 def verify(run_id: str, config: Path = CONFIG) -> None:
     """Re-walk a run's hash chain offline and report tampering or truncation."""
     from .record.chain import verify_run

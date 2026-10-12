@@ -13,7 +13,7 @@ max_tokens: 512
 n_runs: 3
 seed: 42
 cases_per_task: 200
-cost_cap_usd: 25
+cost_cap_usd: 35   # raised from 25 by the author on 2026-10-12 (DECISIONS.md D19)
 
 # A vs B is the headline "real migration" comparison. C and D are controls that
 # each change one factor. The path A -> C -> D -> B changes temperature, then

@@ -105,6 +105,25 @@ def test_unpinned_or_substituted_models_are_refused(tmp_path):
     assert not (run_dir / "calls.jsonl").exists()
 
 
+@pytest.mark.parametrize("crash_after", ["calls", "manifest"])
+def test_an_append_cut_short_by_a_crash_is_set_aside_on_reopening(tmp_path, crash_after):
+    run_dir = filled(tmp_path, 2)
+    # An identical run with a third record supplies the lines a third append would write.
+    (tmp_path / "scratch").mkdir()
+    scratch = filled(tmp_path / "scratch", 3)
+    with open(run_dir / "calls.jsonl", "a") as fh:
+        fh.write((scratch / "calls.jsonl").read_text().splitlines()[2] + "\n")
+    if crash_after == "manifest":
+        with open(run_dir / "manifest.jsonl", "a") as fh:
+            fh.write((scratch / "manifest.jsonl").read_text().splitlines()[2] + "\n")
+
+    recorder = Recorder(run_dir)  # HEAD.json still says 2 records
+    assert recorder.count == 2
+    assert len((run_dir / "orphans.jsonl").read_text().splitlines()) == 1
+    recorder.append(record(5))
+    assert verify_run(run_dir).ok
+
+
 def test_mismatched_file_lengths_block_reopening(tmp_path):
     run_dir = filled(tmp_path)
     rewrite_lines(run_dir / "manifest.jsonl", lambda lines: lines[:-1])

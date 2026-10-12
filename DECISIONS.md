@@ -178,3 +178,18 @@ Rejected:
 Batch results carry no per-request latency. Latency is measured with sequential calls on the
 first 10 cases of each task, for every arm, recorded as `kind: latency_probe`, billed at standard
 rates, and excluded from accuracy.
+
+## D19. Cost cap raised to 35 USD, pilot rule approved (2026-10-12, author decision)
+
+The author approved the dry-run estimate (23.45 USD expected) and raised `cost_cap_usd` from 25 to
+35 USD. The run executes the pilot first and re-projects the full run from the pilot's measured
+usage. If the projection is at most 35 USD, all four arms run. If it is higher, arm D's remaining
+requests are dropped. If it is still higher, the run stops before any further spending and asks
+the author.
+
+## D20. Attribution is labelled as sequential (2026-10-12, author decision)
+
+The report calls the A → C → D → B breakdown "sequential attribution along the path A → C → D → B".
+It states that factors can interact, so attributing along a different order of changes could split
+the shares differently. The path order is fixed by what the API allows (D12), not chosen to favour
+any factor.

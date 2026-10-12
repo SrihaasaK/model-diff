@@ -20,6 +20,7 @@ head hash (the report prints it) to anchor a run externally.
 
 from __future__ import annotations
 
+import datetime as dt
 import fcntl
 import json
 import os
@@ -51,8 +52,34 @@ def read_lines(path: Path) -> list[str]:
     return path.read_text(encoding="utf-8").splitlines()
 
 
+def repair_interrupted_append(run_dir: Path) -> int:
+    """Undo an append that a crash cut short; returns how many records were set aside.
+
+    An append writes calls.jsonl, then manifest.jsonl, then HEAD.json, so a line
+    beyond HEAD's count was never confirmed. Exactly one such line in either
+    file is the signature of an interrupted append: it is moved to
+    orphans.jsonl, outside the chain, and its request is simply re-sent later.
+    Any other mismatch is left alone for `verify` to report.
+    """
+    head_path = run_dir / HEAD
+    count = json.loads(head_path.read_text(encoding="utf-8"))["count"] if head_path.exists() else 0
+    calls, manifest = read_lines(run_dir / CALLS), read_lines(run_dir / MANIFEST)
+    extra_calls, extra_manifest = len(calls) - count, len(manifest) - count
+    if extra_calls not in (0, 1) or extra_manifest not in (0, 1) or not (extra_calls or extra_manifest):
+        return 0
+    orphan = {"moved_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+              "calls_line": calls[count] if extra_calls else None,
+              "manifest_line": manifest[count] if extra_manifest else None}
+    with open(run_dir / "orphans.jsonl", "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(orphan) + "\n")
+    for name, lines in ((CALLS, calls), (MANIFEST, manifest)):
+        (run_dir / name).write_text("".join(line + "\n" for line in lines[:count]), encoding="utf-8")
+    return 1
+
+
 class Recorder:
     def __init__(self, run_dir: Path):
+        repair_interrupted_append(run_dir)
         self.run_dir = run_dir
         config = json.loads((run_dir / RUN_CONFIG).read_text(encoding="utf-8"))
         self.run_id: str = config["run_id"]

@@ -11,7 +11,8 @@ REPO = Path(__file__).resolve().parents[1]
 
 @pytest.fixture
 def cfg():
-    return load_config(REPO / "config.yaml")
+    # The cases below are computed against a 25 USD cap, independent of the cap in config.yaml.
+    return load_config(REPO / "config.yaml").model_copy(update={"cost_cap_usd": 25.0})
 
 
 def plans(cfg, calls: int, input_per_call: int = 400) -> list[ArmPlan]:
