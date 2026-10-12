@@ -1,0 +1,132 @@
+# Task list for the public LegalBench comparison.
+#
+# `model-diff propose-tasks` renders data/TASKS.md from this file, re-checks each
+# license against the task card in the LegalBench repository, and recomputes
+# split statistics. Sampling and every paid command refuse to run until
+# approved is true. Labels are quoted: YAML would read bare Yes/No as booleans.
+#
+# positive_labels: the affirmative answer to the task's question. The "flag
+# rate" in reports is the share of cases whose final answer is one of these.
+
+approved: false
+approved_on: null
+
+tasks:
+  insurance_policy_interpretation:
+    family: insurance_coverage
+    domain: Insurance
+    justification: >-
+      Decides whether a described claim is covered by a policy clause, the core
+      call in claims handling, with an explicit "ambiguous" answer that shows
+      whether a model commits or hedges.
+    license: CC BY 4.0
+    license_url: https://github.com/HazyResearch/legalbench/tree/b46bf4ffae90524b2b72aaa30e7745fe9db64481/tasks/insurance_policy_interpretation
+    labels: ["Yes", "No", "Ambiguous"]
+    positive_labels: ["Yes"]
+    label_map: {"A": "Yes", "B": "No", "C": "Ambiguous"}
+    input_fields: [["policy", "Policy"], ["claim", "Claim"]]
+    sampling: random
+
+  sara_entailment:
+    family: tax_statute_entailment
+    domain: Tax
+    justification: >-
+      Applies excerpts of the US Internal Revenue Code to a fact pattern and
+      decides whether a statement about the tax treatment follows, which tests
+      statutory application rather than recall.
+    license: MIT
+    license_url: https://github.com/HazyResearch/legalbench/tree/b46bf4ffae90524b2b72aaa30e7745fe9db64481/tasks/sara_entailment
+    labels: ["Entailment", "Contradiction"]
+    positive_labels: ["Entailment"]
+    input_fields: [["statute", "Statute"], ["description", "Facts"], ["question", "Statement"]]
+    sampling: random
+
+  privacy_policy_qa:
+    family: privacy_policy
+    domain: Privacy compliance
+    justification: >-
+      Decides whether a privacy-policy clause answers a user's question about a
+      data practice, the step behind privacy-notice review and data-subject
+      request triage.
+    license: MIT
+    license_url: https://github.com/HazyResearch/legalbench/tree/b46bf4ffae90524b2b72aaa30e7745fe9db64481/tasks/privacy_policy_qa
+    labels: ["Relevant", "Irrelevant"]
+    positive_labels: ["Relevant"]
+    input_fields: [["question", "Question"], ["text", "Clause"]]
+    sampling: random
+
+  telemarketing_sales_rule:
+    family: consumer_protection_rule
+    domain: Consumer finance
+    justification: >-
+      Applies the deceptive-practice provisions of the US Telemarketing Sales
+      Rule (16 C.F.R. 310.3(a)(1)-(2)) to sales fact patterns and decides
+      whether a violation occurred, a direct consumer-protection compliance call.
+    license: CC BY 4.0
+    license_url: https://github.com/HazyResearch/legalbench/tree/b46bf4ffae90524b2b72aaa30e7745fe9db64481/tasks/telemarketing_sales_rule
+    labels: ["Yes", "No"]
+    positive_labels: ["Yes"]
+    input_fields: [["text", "Facts"]]
+    sampling: random
+
+  unfair_tos:
+    family: unfair_contract_terms
+    domain: Consumer protection
+    justification: >-
+      Sorts consumer terms-of-service clauses into eight categories of
+      potentially unfair term (arbitration, unilateral change, liability
+      limits, and so on) or Other, as in an unfair-terms review.
+    license: CC BY 4.0
+    license_url: https://github.com/HazyResearch/legalbench/tree/b46bf4ffae90524b2b72aaa30e7745fe9db64481/tasks/unfair_tos
+    labels:
+      - "Arbitration"
+      - "Unilateral change"
+      - "Content removal"
+      - "Jurisdiction"
+      - "Choice of law"
+      - "Limitation of liability"
+      - "Unilateral termination"
+      - "Contract by using"
+      - "Other"
+    positive_labels:
+      - "Arbitration"
+      - "Unilateral change"
+      - "Content removal"
+      - "Jurisdiction"
+      - "Choice of law"
+      - "Limitation of liability"
+      - "Unilateral termination"
+      - "Contract by using"
+    input_fields: [["text", "Clause"]]
+    # 91% of the test split is "Other"; a random draw would hold about one
+    # clause per unfair category. Stratified sampling takes equal shares per
+    # label so every category is measured.
+    sampling: stratified
+
+# Domain-screen matches that are not proposed. `match` is a task name or a
+# name prefix. A candidate whose identifier would put a company name in this
+# repository is referenced only by the SHA-256 of its identifier.
+screened_out:
+  - match: consumer_contracts_qa
+    reason: Non-commercial license; the harness is meant for later commercial use.
+  - match: privacy_policy_entailment
+    reason: Non-commercial license.
+  - match: opp115_
+    reason: Non-commercial license (all OPP-115 privacy tasks).
+  - match: canada_tax_court_outcomes
+    reason: Non-commercial license, inherited from the court's terms for the source decisions.
+  - match: learned_hands_
+    reason: Non-commercial share-alike license; also lay issue-spotting rather than a compliance determination.
+  - match_sha256: e431ab24a8e5ab30fdaf574adfb23a8d8c9a961b22c502ba60b6c61ef0b8a2b2
+    display: "(identifier withheld: it is a company name)"
+    reason: >-
+      Leveraged-loan covenant classification; permissively licensed and on
+      topic, but its task identifier would put a company name in this repo.
+  - match: cuad_
+    reason: Commercial-contract clause detection over long agreements naming real counterparties; not a compliance determination.
+  - match: maud_
+    reason: Merger-agreement deal-point questions with per-question answer sets; corporate transactions rather than compliance.
+  - match: contract_nli_
+    reason: Non-disclosure-agreement clause entailment; not in the named domains.
+  - match: supply_chain_disclosure_
+    reason: Supply-chain anti-trafficking disclosures; outside the named domains.

@@ -1,0 +1,18 @@
+# Secrets: the API key lives only here and is read by the harness.
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Generated data. cases.jsonl and run outputs quote third-party public text
+# (for example, website names inside terms-of-service clauses), so they stay
+# out of the repository. Both are regenerated deterministically from config.
+data/cases.jsonl
+data/cases.meta.json
+data/dry_run.json
+runs/
+
+.DS_Store

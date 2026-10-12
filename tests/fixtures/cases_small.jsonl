@@ -1,0 +1,7 @@
+{"case_id": "tsr-1", "gold_label": "Yes", "input": "Synthetic input for tsr-1.", "license": "CC0-1.0 (synthetic test fixture)", "task": "tsr"}
+{"case_id": "tsr-2", "gold_label": "No", "input": "Synthetic input for tsr-2.", "license": "CC0-1.0 (synthetic test fixture)", "task": "tsr"}
+{"case_id": "tsr-3", "gold_label": "Yes", "input": "Synthetic input for tsr-3.", "license": "CC0-1.0 (synthetic test fixture)", "task": "tsr"}
+{"case_id": "tos-1", "gold_label": "Arbitration", "input": "Synthetic input for tos-1.", "license": "CC0-1.0 (synthetic test fixture)", "task": "tos"}
+{"case_id": "tos-2", "gold_label": "Other", "input": "Synthetic input for tos-2.", "license": "CC0-1.0 (synthetic test fixture)", "task": "tos"}
+{"case_id": "tos-3", "gold_label": "Jurisdiction", "input": "Synthetic input for tos-3.", "license": "CC0-1.0 (synthetic test fixture)", "task": "tos"}
+{"case_id": "tos-4", "gold_label": "Other", "input": "Synthetic input for tos-4.", "license": "CC0-1.0 (synthetic test fixture)", "task": "tos"}

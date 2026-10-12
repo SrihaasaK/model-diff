@@ -1,0 +1,61 @@
+# model-diff run configuration. Every model ID is pinned here and copied into
+# each call record; a run refuses to continue if these IDs change under it.
+
+model_a: claude-sonnet-4-5-20250929   # baseline snapshot (deprecated; end of life 2026-11-30)
+model_b: claude-sonnet-5-5            # current Sonnet as of 2026-10
+judge_model: claude-haiku-4-5-20251001
+
+temperature: 0
+max_tokens: 512
+n_runs: 3
+seed: 42
+cases_per_task: 200
+cost_cap_usd: 25
+
+# Shared request parameters above are sent to both subject models. A model that
+# rejects one of them gets a per-role override here; a null value removes the
+# parameter from that model's requests. Every record stores the exact
+# parameters that were sent.
+overrides:
+  model_a: {}
+  model_b:
+    # Claude Sonnet 5.5 rejects any temperature other than the default 1.0 with
+    # a 400 error, so it runs at the API default (1.0).
+    temperature: null
+    # Sonnet 5.5 thinks before answering unless told not to; between_tools is
+    # its documented "no up-front thinking" setting, which matches Sonnet 4.5's
+    # default of no thinking.
+    thinking: {type: between_tools}
+
+judge:
+  temperature: 0
+  max_tokens: 300
+  budget_usd: 2.0          # hard ceiling on judge spend per run; included in the cost estimate
+
+corpus:
+  adapter: legalbench      # "legalbench" or "jsonl"
+  path: null               # JSONL corpus path when adapter is "jsonl"
+  dataset: nguha/legalbench
+  revision: daec8237410aa23e3faf4bc41ad8b3a7e1696826   # pinned Hugging Face commit
+  split: test
+
+paths:
+  tasks: data/tasks.yaml
+  cases: data/cases.jsonl
+  prompts: prompts
+  runs: runs
+
+run:
+  use_batch: true
+  poll_interval_s: 60
+  latency_probe_cases: 10  # sequential calls per task per subject model, used only for latency
+  expected_output_tokens: 160  # planning assumption for the "expected" estimate; the cap uses max_tokens
+
+# USD per million tokens, standard tier. The Batch API bills 50% of these.
+# Source: https://platform.claude.com/docs/en/about-claude/pricing (retrieved 2026-10-12).
+pricing:
+  batch_discount: 0.5
+  models:
+    claude-sonnet-4-5-20250929: {input: 3.00, output: 15.00}
+    claude-sonnet-5-5: {input: 2.00, output: 10.00}
+    claude-haiku-4-5-20251001: {input: 1.00, output: 5.00}

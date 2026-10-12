@@ -1,0 +1,4 @@
+# Labels are quoted: YAML 1.1 would read bare Yes/No as booleans.
+tasks:
+  tsr: {family: test, labels: ["Yes", "No"], positive_labels: ["Yes"]}
+  tos: {family: test, labels: ["Other", "Arbitration", "Jurisdiction"], positive_labels: ["Arbitration", "Jurisdiction"]}
