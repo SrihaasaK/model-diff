@@ -1,0 +1,294 @@
+{
+  "attribution": {
+    "combinations": {
+      "model": 81,
+      "model+thinking": 2,
+      "temperature": 1,
+      "temperature+model+thinking": 1,
+      "thinking": 27
+    },
+    "involved": {
+      "model": 84,
+      "temperature": 2,
+      "thinking": 30
+    },
+    "n_cases": 780,
+    "n_changed": 112,
+    "only": {
+      "model": 81,
+      "temperature": 1,
+      "thinking": 27
+    },
+    "path": [
+      "A",
+      "C",
+      "D",
+      "B"
+    ],
+    "steps": [
+      {
+        "factor": "temperature",
+        "final_disagreement": 0.01282051282051282,
+        "from": "A",
+        "single_run_disagreement": 0.022507122507122505,
+        "to": "C"
+      },
+      {
+        "factor": "model",
+        "final_disagreement": 0.16282051282051282,
+        "from": "C",
+        "single_run_disagreement": 0.16695156695156696,
+        "to": "D"
+      },
+      {
+        "factor": "thinking",
+        "final_disagreement": 0.08846153846153847,
+        "from": "D",
+        "single_run_disagreement": 0.09031339031339031,
+        "to": "B"
+      }
+    ]
+  },
+  "chain_head": "b718cc499855d36a7be589b6514741256ddc484d14192e6922478b4b3cc03ba3",
+  "headline": [
+    "A",
+    "B"
+  ],
+  "judge": {
+    "asked_now": 0,
+    "not_judged": 0,
+    "spent_usd_total": 0.0689385
+  },
+  "judge_natures": {
+    "format_change": 260,
+    "judge_unparseable": 5,
+    "misread_instruction": 8,
+    "more_lenient": 63,
+    "other": 167,
+    "stricter": 29
+  },
+  "pairs": {
+    "A>B": {
+      "categories": {
+        "A_right_B_wrong": 30,
+        "A_wrong_B_right": 74,
+        "both_wrong_differently": 8,
+        "format_drift": 420,
+        "same": 248
+      },
+      "categories_by_task": {
+        "insurance_policy_interpretation": {
+          "A_right_B_wrong": 19,
+          "A_wrong_B_right": 22,
+          "both_wrong_differently": 5,
+          "format_drift": 40,
+          "same": 47
+        },
+        "privacy_policy_qa": {
+          "A_right_B_wrong": 2,
+          "A_wrong_B_right": 12,
+          "format_drift": 66,
+          "same": 120
+        },
+        "sara_entailment": {
+          "A_right_B_wrong": 3,
+          "A_wrong_B_right": 35,
+          "format_drift": 86,
+          "same": 76
+        },
+        "telemarketing_sales_rule": {
+          "A_right_B_wrong": 2,
+          "A_wrong_B_right": 3,
+          "format_drift": 41,
+          "same": 1
+        },
+        "unfair_tos": {
+          "A_right_B_wrong": 4,
+          "A_wrong_B_right": 2,
+          "both_wrong_differently": 3,
+          "format_drift": 187,
+          "same": 4
+        }
+      },
+      "final_disagreement": {
+        "ALL": 0.14358974358974358,
+        "insurance_policy_interpretation": 0.3458646616541353,
+        "privacy_policy_qa": 0.07,
+        "sara_entailment": 0.19,
+        "telemarketing_sales_rule": 0.10638297872340426,
+        "unfair_tos": 0.045
+      },
+      "single_run_disagreement": {
+        "ALL": 0.14487179487179486,
+        "insurance_policy_interpretation": 0.3433583959899749,
+        "privacy_policy_qa": 0.06666666666666667,
+        "sara_entailment": 0.19666666666666666,
+        "telemarketing_sales_rule": 0.11347517730496454,
+        "unfair_tos": 0.04666666666666667
+      }
+    },
+    "A>C": {
+      "categories": {
+        "A_right_B_wrong": 7,
+        "A_wrong_B_right": 3,
+        "format_drift": 60,
+        "same": 710
+      },
+      "categories_by_task": {
+        "insurance_policy_interpretation": {
+          "format_drift": 16,
+          "same": 117
+        },
+        "privacy_policy_qa": {
+          "A_right_B_wrong": 2,
+          "format_drift": 27,
+          "same": 171
+        },
+        "sara_entailment": {
+          "A_right_B_wrong": 3,
+          "A_wrong_B_right": 2,
+          "format_drift": 11,
+          "same": 184
+        },
+        "telemarketing_sales_rule": {
+          "format_drift": 2,
+          "same": 45
+        },
+        "unfair_tos": {
+          "A_right_B_wrong": 2,
+          "A_wrong_B_right": 1,
+          "format_drift": 4,
+          "same": 193
+        }
+      },
+      "final_disagreement": {
+        "ALL": 0.01282051282051282,
+        "insurance_policy_interpretation": 0.0,
+        "privacy_policy_qa": 0.01,
+        "sara_entailment": 0.025,
+        "telemarketing_sales_rule": 0.0,
+        "unfair_tos": 0.015
+      },
+      "single_run_disagreement": {
+        "ALL": 0.022507122507122505,
+        "insurance_policy_interpretation": 0.020885547201336674,
+        "privacy_policy_qa": 0.020555555555555556,
+        "sara_entailment": 0.034444444444444444,
+        "telemarketing_sales_rule": 0.0,
+        "unfair_tos": 0.01888888888888889
+      }
+    },
+    "C>D": {
+      "categories": {
+        "A_right_B_wrong": 40,
+        "A_wrong_B_right": 72,
+        "both_wrong_differently": 10,
+        "format_drift": 383,
+        "same": 275
+      },
+      "categories_by_task": {
+        "insurance_policy_interpretation": {
+          "A_right_B_wrong": 22,
+          "A_wrong_B_right": 22,
+          "both_wrong_differently": 6,
+          "format_drift": 36,
+          "same": 47
+        },
+        "privacy_policy_qa": {
+          "A_right_B_wrong": 2,
+          "A_wrong_B_right": 13,
+          "format_drift": 70,
+          "same": 115
+        },
+        "sara_entailment": {
+          "A_right_B_wrong": 4,
+          "A_wrong_B_right": 29,
+          "format_drift": 61,
+          "same": 106
+        },
+        "telemarketing_sales_rule": {
+          "A_right_B_wrong": 5,
+          "A_wrong_B_right": 3,
+          "format_drift": 39
+        },
+        "unfair_tos": {
+          "A_right_B_wrong": 7,
+          "A_wrong_B_right": 5,
+          "both_wrong_differently": 4,
+          "format_drift": 177,
+          "same": 7
+        }
+      },
+      "final_disagreement": {
+        "ALL": 0.16282051282051282,
+        "insurance_policy_interpretation": 0.37593984962406013,
+        "privacy_policy_qa": 0.075,
+        "sara_entailment": 0.19,
+        "telemarketing_sales_rule": 0.1702127659574468,
+        "unfair_tos": 0.08
+      },
+      "single_run_disagreement": {
+        "ALL": 0.16695156695156696,
+        "insurance_policy_interpretation": 0.37092731829573933,
+        "privacy_policy_qa": 0.08388888888888889,
+        "sara_entailment": 0.1988888888888889,
+        "telemarketing_sales_rule": 0.1773049645390071,
+        "unfair_tos": 0.08
+      }
+    },
+    "D>B": {
+      "categories": {
+        "A_right_B_wrong": 23,
+        "A_wrong_B_right": 40,
+        "both_wrong_differently": 1,
+        "format_drift": 95,
+        "same": 621
+      },
+      "categories_by_task": {
+        "insurance_policy_interpretation": {
+          "A_right_B_wrong": 10,
+          "A_wrong_B_right": 13,
+          "same": 110
+        },
+        "privacy_policy_qa": {
+          "A_right_B_wrong": 5,
+          "A_wrong_B_right": 6,
+          "same": 189
+        },
+        "sara_entailment": {
+          "A_right_B_wrong": 1,
+          "A_wrong_B_right": 10,
+          "format_drift": 95,
+          "same": 94
+        },
+        "telemarketing_sales_rule": {
+          "A_right_B_wrong": 2,
+          "A_wrong_B_right": 5,
+          "same": 40
+        },
+        "unfair_tos": {
+          "A_right_B_wrong": 5,
+          "A_wrong_B_right": 6,
+          "both_wrong_differently": 1,
+          "same": 188
+        }
+      },
+      "final_disagreement": {
+        "ALL": 0.08846153846153847,
+        "insurance_policy_interpretation": 0.17293233082706766,
+        "privacy_policy_qa": 0.055,
+        "sara_entailment": 0.08,
+        "telemarketing_sales_rule": 0.14893617021276595,
+        "unfair_tos": 0.06
+      },
+      "single_run_disagreement": {
+        "ALL": 0.09031339031339031,
+        "insurance_policy_interpretation": 0.16123642439431912,
+        "privacy_policy_qa": 0.056666666666666664,
+        "sara_entailment": 0.095,
+        "telemarketing_sales_rule": 0.14893617021276595,
+        "unfair_tos": 0.058333333333333334
+      }
+    }
+  }
+}

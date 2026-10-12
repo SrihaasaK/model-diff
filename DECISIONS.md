@@ -254,3 +254,29 @@ Arm B's thinking came to 105 tokens per call, against the 1,000-token planning a
 re-projected total was 11.80 USD against the 35 USD cap, so all four arms continued. The
 assumption is kept in config as written; it was a planning number, and the pilot replaced it as
 designed.
+
+## D25. Report changes made after reading the results (2026-10-12)
+
+These changes were made after the run's results were read. Each adds disclosure; none changes a
+category, metric, sample, or number.
+
+- **Format-drift split.** All 420 `format_drift` cases kept the same label. In 401 of them, arm
+  A's repeats mostly broke the strict JSON format and B's did not. The report now says so, and
+  shows how each arm missed the format: arm A wrapped valid JSON in a Markdown code fence on
+  1,591 calls, and arm B put text before the JSON on 297.
+- **Output-limit caveat.** 24 calls stopped at the 512-token limit (A 1, C 1, D 22), all on
+  `sara_entailment` and all before a parseable label, because reasoning was written into the
+  visible answer. The report states this; nothing was re-run.
+- **Unparseable judge answers.** Five judge descriptions were invalid JSON (four had unescaped
+  quotes, and one hit the 300-token judge limit). They are now labelled `judge_unparseable`
+  instead of `not_judged`.
+- **Chart annotations.** The diff chart labels each bar with its label changes and its
+  format-only changes separately, and drops numbers that do not fit their segment.
+- **Published copy.** `reports/<run_id>/` holds text-free copies for publication: the report,
+  charts, metrics, diff summary, run config, models snapshot, and head. The full run directory
+  quotes source text and stays local.
+
+Rejected: redefining `format_drift` to exclude same-label cases now that it dominates the
+counts. That would change a category fixed in D8 after seeing the results. Re-drawing the review
+sample with equal shares per category, so that label changes outnumber format-only ones, is left
+to the author.

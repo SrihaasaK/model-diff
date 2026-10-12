@@ -1,0 +1,1343 @@
+{
+  "chain_head": "a2308922b7f05c1e473fc01b1abc0012eda1efc990c8fa9733c4bb124ab76c4d",
+  "completeness": {
+    "A": {
+      "expected_calls": 2340,
+      "failed_calls": 0,
+      "recorded_calls": 2340
+    },
+    "B": {
+      "expected_calls": 2340,
+      "failed_calls": 0,
+      "recorded_calls": 2340
+    },
+    "C": {
+      "expected_calls": 2340,
+      "failed_calls": 0,
+      "recorded_calls": 2340
+    },
+    "D": {
+      "expected_calls": 2340,
+      "failed_calls": 0,
+      "recorded_calls": 2340
+    }
+  },
+  "dropped_arms": [],
+  "judge": {
+    "asked_now": 26,
+    "not_judged": 0,
+    "spent_usd": 0.0027396
+  },
+  "kept_arms": [
+    "A",
+    "B",
+    "C",
+    "D"
+  ],
+  "metrics": [
+    {
+      "accuracy": 0.6165413533834586,
+      "accuracy_ci95": [
+        0.5317374956859631,
+        0.694802035925514
+      ],
+      "accuracy_natural": null,
+      "arm": "A",
+      "correct": 82,
+      "flag_rate": 0.2932330827067669,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.5162907268170426,
+      "latency_samples": 10,
+      "mean_input_tokens": 295.8721804511278,
+      "mean_latency_ms": 2418.6361832980765,
+      "mean_output_tokens": 66.46365914786968,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 399,
+      "n_cases": 133,
+      "noise_floor": 0.015037593984962405,
+      "pairwise_agreement": 0.9849624060150376,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Ambiguous": {
+          "precision": 0.6666666666666666,
+          "predicted": 42,
+          "recall": 0.4745762711864407,
+          "support": 59
+        },
+        "No": {
+          "precision": 0.4807692307692308,
+          "predicted": 52,
+          "recall": 0.9259259259259259,
+          "support": 27
+        },
+        "Yes": {
+          "precision": 0.7435897435897436,
+          "predicted": 39,
+          "recall": 0.6170212765957447,
+          "support": 47
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.6165413533834586,
+        0.6165413533834586,
+        0.6165413533834586
+      ],
+      "task": "insurance_policy_interpretation",
+      "total_input_tokens": 118053,
+      "total_output_tokens": 26519,
+      "unanimity_rate": 0.9774436090225563
+    },
+    {
+      "accuracy": 0.595,
+      "accuracy_ci95": [
+        0.5257971002635867,
+        0.6606222876693103
+      ],
+      "accuracy_natural": null,
+      "arm": "A",
+      "correct": 119,
+      "flag_rate": 0.13,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.3416666666666667,
+      "latency_samples": 10,
+      "mean_input_tokens": 207.94,
+      "mean_latency_ms": 1608.9421623983071,
+      "mean_output_tokens": 47.211666666666666,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.0033333333333332993,
+      "pairwise_agreement": 0.9966666666666667,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Irrelevant": {
+          "precision": 0.5402298850574713,
+          "predicted": 174,
+          "recall": 0.9894736842105263,
+          "support": 95
+        },
+        "Relevant": {
+          "precision": 0.9615384615384616,
+          "predicted": 26,
+          "recall": 0.23809523809523808,
+          "support": 105
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.595,
+        0.595,
+        0.6
+      ],
+      "task": "privacy_policy_qa",
+      "total_input_tokens": 124764,
+      "total_output_tokens": 28327,
+      "unanimity_rate": 0.995
+    },
+    {
+      "accuracy": 0.8,
+      "accuracy_ci95": [
+        0.7391448129154138,
+        0.8495479910832086
+      ],
+      "accuracy_natural": null,
+      "arm": "A",
+      "correct": 160,
+      "flag_rate": 0.37,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.8033333333333333,
+      "latency_samples": 10,
+      "mean_input_tokens": 291.5,
+      "mean_latency_ms": 2016.3862374989549,
+      "mean_output_tokens": 96.005,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.01666666666666672,
+      "pairwise_agreement": 0.9833333333333333,
+      "parse_failure_rate": 0.0016666666666666668,
+      "per_label": {
+        "Contradiction": {
+          "precision": 0.7301587301587301,
+          "predicted": 126,
+          "recall": 0.9387755102040817,
+          "support": 98
+        },
+        "Entailment": {
+          "precision": 0.918918918918919,
+          "predicted": 74,
+          "recall": 0.6666666666666666,
+          "support": 102
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.79,
+        0.795,
+        0.79
+      ],
+      "task": "sara_entailment",
+      "total_input_tokens": 174900,
+      "total_output_tokens": 57603,
+      "unanimity_rate": 0.975
+    },
+    {
+      "accuracy": 0.9361702127659575,
+      "accuracy_ci95": [
+        0.828373857036585,
+        0.9780546149654928
+      ],
+      "accuracy_natural": null,
+      "arm": "A",
+      "correct": 44,
+      "flag_rate": 0.574468085106383,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.9787234042553191,
+      "latency_samples": 10,
+      "mean_input_tokens": 329.6595744680851,
+      "mean_latency_ms": 2333.75194149703,
+      "mean_output_tokens": 91.64539007092199,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 141,
+      "n_cases": 47,
+      "noise_floor": 0.0,
+      "pairwise_agreement": 1.0,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "No": {
+          "precision": 0.9,
+          "predicted": 20,
+          "recall": 0.9473684210526315,
+          "support": 19
+        },
+        "Yes": {
+          "precision": 0.9629629629629629,
+          "predicted": 27,
+          "recall": 0.9285714285714286,
+          "support": 28
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.9361702127659575,
+        0.9361702127659575,
+        0.9361702127659575
+      ],
+      "task": "telemarketing_sales_rule",
+      "total_input_tokens": 46482,
+      "total_output_tokens": 12922,
+      "unanimity_rate": 1.0
+    },
+    {
+      "accuracy": 0.89,
+      "accuracy_ci95": [
+        0.8390730895663762,
+        0.9262275556318328
+      ],
+      "accuracy_natural": 0.7179253279208808,
+      "arm": "A",
+      "correct": 178,
+      "flag_rate": 0.91,
+      "flag_rate_natural": 0.36861309707066214,
+      "format_violation_rate": 0.9766666666666667,
+      "latency_samples": 10,
+      "mean_input_tokens": 379.005,
+      "mean_latency_ms": 1582.100016498589,
+      "mean_output_tokens": 53.08833333333333,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.0033333333333332993,
+      "pairwise_agreement": 0.9966666666666667,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Arbitration": {
+          "precision": 0.7894736842105263,
+          "predicted": 19,
+          "recall": 1.0,
+          "support": 15
+        },
+        "Choice of law": {
+          "precision": 1.0,
+          "predicted": 22,
+          "recall": 0.9166666666666666,
+          "support": 24
+        },
+        "Content removal": {
+          "precision": 1.0,
+          "predicted": 18,
+          "recall": 0.782608695652174,
+          "support": 23
+        },
+        "Contract by using": {
+          "precision": 1.0,
+          "predicted": 19,
+          "recall": 0.8260869565217391,
+          "support": 23
+        },
+        "Jurisdiction": {
+          "precision": 0.9583333333333334,
+          "predicted": 24,
+          "recall": 1.0,
+          "support": 23
+        },
+        "Limitation of liability": {
+          "precision": 0.8846153846153846,
+          "predicted": 26,
+          "recall": 1.0,
+          "support": 23
+        },
+        "Other": {
+          "precision": 0.8888888888888888,
+          "predicted": 18,
+          "recall": 0.6956521739130435,
+          "support": 23
+        },
+        "Unilateral change": {
+          "precision": 0.8333333333333334,
+          "predicted": 24,
+          "recall": 0.8695652173913043,
+          "support": 23
+        },
+        "Unilateral termination": {
+          "precision": 0.7333333333333333,
+          "predicted": 30,
+          "recall": 0.9565217391304348,
+          "support": 23
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.89,
+        0.885,
+        0.89
+      ],
+      "task": "unfair_tos",
+      "total_input_tokens": 227403,
+      "total_output_tokens": 31853,
+      "unanimity_rate": 0.995
+    },
+    {
+      "accuracy": 0.7474358974358974,
+      "accuracy_ci95": [
+        0.7157827708959613,
+        0.7766637508163526
+      ],
+      "accuracy_natural": null,
+      "arm": "A",
+      "correct": 583,
+      "flag_rate": 0.4461538461538462,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.691025641025641,
+      "latency_samples": 50,
+      "mean_input_tokens": 295.55641025641023,
+      "mean_latency_ms": 1991.9633082381915,
+      "mean_output_tokens": 67.18974358974359,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 2340,
+      "n_cases": 780,
+      "noise_floor": 0.008547008547008517,
+      "pairwise_agreement": 0.9914529914529915,
+      "parse_failure_rate": 0.00042735042735042735,
+      "per_label": null,
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.7448717948717949,
+        0.7448717948717949,
+        0.7461538461538462
+      ],
+      "task": "ALL",
+      "total_input_tokens": 691602,
+      "total_output_tokens": 157224,
+      "unanimity_rate": 0.9871794871794872
+    },
+    {
+      "accuracy": 0.6390977443609023,
+      "accuracy_ci95": [
+        0.5546312812505808,
+        0.7157546113179564
+      ],
+      "accuracy_natural": null,
+      "arm": "B",
+      "correct": 85,
+      "flag_rate": 0.3458646616541353,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.017543859649122806,
+      "latency_samples": 10,
+      "mean_input_tokens": 419.9172932330827,
+      "mean_latency_ms": 2229.7963128003175,
+      "mean_output_tokens": 192.2406015037594,
+      "mean_thinking_tokens": 95.3157894736842,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 399,
+      "n_cases": 133,
+      "noise_floor": 0.06015037593984962,
+      "pairwise_agreement": 0.9398496240601504,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Ambiguous": {
+          "precision": 0.6,
+          "predicted": 55,
+          "recall": 0.559322033898305,
+          "support": 59
+        },
+        "No": {
+          "precision": 0.59375,
+          "predicted": 32,
+          "recall": 0.7037037037037037,
+          "support": 27
+        },
+        "Yes": {
+          "precision": 0.717391304347826,
+          "predicted": 46,
+          "recall": 0.7021276595744681,
+          "support": 47
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.6466165413533834,
+        0.6541353383458647,
+        0.6165413533834586
+      ],
+      "task": "insurance_policy_interpretation",
+      "total_input_tokens": 167547,
+      "total_output_tokens": 76704,
+      "unanimity_rate": 0.9097744360902256
+    },
+    {
+      "accuracy": 0.645,
+      "accuracy_ci95": [
+        0.5765211302029042,
+        0.7080137250630966
+      ],
+      "accuracy_natural": null,
+      "arm": "B",
+      "correct": 129,
+      "flag_rate": 0.19,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.0,
+      "latency_samples": 10,
+      "mean_input_tokens": 279.78,
+      "mean_latency_ms": 1700.3807290981058,
+      "mean_output_tokens": 92.51333333333334,
+      "mean_thinking_tokens": 22.86,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.010000000000000009,
+      "pairwise_agreement": 0.99,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Irrelevant": {
+          "precision": 0.5740740740740741,
+          "predicted": 162,
+          "recall": 0.9789473684210527,
+          "support": 95
+        },
+        "Relevant": {
+          "precision": 0.9473684210526315,
+          "predicted": 38,
+          "recall": 0.34285714285714286,
+          "support": 105
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.645,
+        0.64,
+        0.645
+      ],
+      "task": "privacy_policy_qa",
+      "total_input_tokens": 167868,
+      "total_output_tokens": 55508,
+      "unanimity_rate": 0.985
+    },
+    {
+      "accuracy": 0.96,
+      "accuracy_ci95": [
+        0.9230679314255735,
+        0.9795943680389804
+      ],
+      "accuracy_natural": null,
+      "arm": "B",
+      "correct": 192,
+      "flag_rate": 0.5,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.47833333333333333,
+      "latency_samples": 10,
+      "mean_input_tokens": 398.755,
+      "mean_latency_ms": 3838.611441697867,
+      "mean_output_tokens": 334.47333333333336,
+      "mean_thinking_tokens": 146.81833333333333,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.036666666666666625,
+      "pairwise_agreement": 0.9633333333333334,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Contradiction": {
+          "precision": 0.95,
+          "predicted": 100,
+          "recall": 0.9693877551020408,
+          "support": 98
+        },
+        "Entailment": {
+          "precision": 0.97,
+          "predicted": 100,
+          "recall": 0.9509803921568627,
+          "support": 102
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.945,
+        0.96,
+        0.95
+      ],
+      "task": "sara_entailment",
+      "total_input_tokens": 239253,
+      "total_output_tokens": 200684,
+      "unanimity_rate": 0.945
+    },
+    {
+      "accuracy": 0.9574468085106383,
+      "accuracy_ci95": [
+        0.8575147221070161,
+        0.9882517241390656
+      ],
+      "accuracy_natural": null,
+      "arm": "B",
+      "correct": 45,
+      "flag_rate": 0.5531914893617021,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.014184397163120567,
+      "latency_samples": 10,
+      "mean_input_tokens": 441.8510638297872,
+      "mean_latency_ms": 2538.401187401905,
+      "mean_output_tokens": 310.3191489361702,
+      "mean_thinking_tokens": 193.0709219858156,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 141,
+      "n_cases": 47,
+      "noise_floor": 0.014184397163120588,
+      "pairwise_agreement": 0.9858156028368794,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "No": {
+          "precision": 0.9047619047619048,
+          "predicted": 21,
+          "recall": 1.0,
+          "support": 19
+        },
+        "Yes": {
+          "precision": 1.0,
+          "predicted": 26,
+          "recall": 0.9285714285714286,
+          "support": 28
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.9574468085106383,
+        0.9361702127659575,
+        0.9574468085106383
+      ],
+      "task": "telemarketing_sales_rule",
+      "total_input_tokens": 62301,
+      "total_output_tokens": 43755,
+      "unanimity_rate": 0.9787234042553191
+    },
+    {
+      "accuracy": 0.88,
+      "accuracy_ci95": [
+        0.8276574785477353,
+        0.9180200731838528
+      ],
+      "accuracy_natural": 0.7554742167337521,
+      "arm": "B",
+      "correct": 176,
+      "flag_rate": 0.88,
+      "flag_rate_natural": 0.3266969976852644,
+      "format_violation_rate": 0.0016666666666666668,
+      "latency_samples": 10,
+      "mean_input_tokens": 510.465,
+      "mean_latency_ms": 1559.975262300577,
+      "mean_output_tokens": 80.9,
+      "mean_thinking_tokens": 9.928333333333333,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.00666666666666671,
+      "pairwise_agreement": 0.9933333333333333,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Arbitration": {
+          "precision": 0.7894736842105263,
+          "predicted": 19,
+          "recall": 1.0,
+          "support": 15
+        },
+        "Choice of law": {
+          "precision": 1.0,
+          "predicted": 22,
+          "recall": 0.9166666666666666,
+          "support": 24
+        },
+        "Content removal": {
+          "precision": 0.9473684210526315,
+          "predicted": 19,
+          "recall": 0.782608695652174,
+          "support": 23
+        },
+        "Contract by using": {
+          "precision": 1.0,
+          "predicted": 18,
+          "recall": 0.782608695652174,
+          "support": 23
+        },
+        "Jurisdiction": {
+          "precision": 0.9583333333333334,
+          "predicted": 24,
+          "recall": 1.0,
+          "support": 23
+        },
+        "Limitation of liability": {
+          "precision": 0.8846153846153846,
+          "predicted": 26,
+          "recall": 1.0,
+          "support": 23
+        },
+        "Other": {
+          "precision": 0.7083333333333334,
+          "predicted": 24,
+          "recall": 0.7391304347826086,
+          "support": 23
+        },
+        "Unilateral change": {
+          "precision": 0.7916666666666666,
+          "predicted": 24,
+          "recall": 0.8260869565217391,
+          "support": 23
+        },
+        "Unilateral termination": {
+          "precision": 0.875,
+          "predicted": 24,
+          "recall": 0.9130434782608695,
+          "support": 23
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.88,
+        0.88,
+        0.89
+      ],
+      "task": "unfair_tos",
+      "total_input_tokens": 306279,
+      "total_output_tokens": 48540,
+      "unanimity_rate": 0.99
+    },
+    {
+      "accuracy": 0.8038461538461539,
+      "accuracy_ci95": [
+        0.7745188662165643,
+        0.8301952563006296
+      ],
+      "accuracy_natural": null,
+      "arm": "B",
+      "correct": 627,
+      "flag_rate": 0.4948717948717949,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.12692307692307692,
+      "latency_samples": 50,
+      "mean_input_tokens": 403.0974358974359,
+      "mean_latency_ms": 2373.4329866597545,
+      "mean_output_tokens": 181.70555555555555,
+      "mean_thinking_tokens": 73.93931623931624,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 2340,
+      "n_cases": 780,
+      "noise_floor": 0.02478632478632481,
+      "pairwise_agreement": 0.9752136752136752,
+      "parse_failure_rate": 0.0,
+      "per_label": null,
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.8012820512820513,
+        0.8038461538461539,
+        0.8
+      ],
+      "task": "ALL",
+      "total_input_tokens": 943248,
+      "total_output_tokens": 425191,
+      "unanimity_rate": 0.9628205128205128
+    },
+    {
+      "accuracy": 0.6165413533834586,
+      "accuracy_ci95": [
+        0.5317374956859631,
+        0.694802035925514
+      ],
+      "accuracy_natural": null,
+      "arm": "C",
+      "correct": 82,
+      "flag_rate": 0.2932330827067669,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.5112781954887218,
+      "latency_samples": 10,
+      "mean_input_tokens": 295.8721804511278,
+      "mean_latency_ms": 2189.8866710005677,
+      "mean_output_tokens": 66.48621553884712,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 399,
+      "n_cases": 133,
+      "noise_floor": 0.03007518796992481,
+      "pairwise_agreement": 0.9699248120300752,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Ambiguous": {
+          "precision": 0.6666666666666666,
+          "predicted": 42,
+          "recall": 0.4745762711864407,
+          "support": 59
+        },
+        "No": {
+          "precision": 0.4807692307692308,
+          "predicted": 52,
+          "recall": 0.9259259259259259,
+          "support": 27
+        },
+        "Yes": {
+          "precision": 0.7435897435897436,
+          "predicted": 39,
+          "recall": 0.6170212765957447,
+          "support": 47
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.5939849624060151,
+        0.6165413533834586,
+        0.6090225563909775
+      ],
+      "task": "insurance_policy_interpretation",
+      "total_input_tokens": 118053,
+      "total_output_tokens": 26528,
+      "unanimity_rate": 0.9548872180451128
+    },
+    {
+      "accuracy": 0.585,
+      "accuracy_ci95": [
+        0.5157391484647246,
+        0.6510571460015516
+      ],
+      "accuracy_natural": null,
+      "arm": "C",
+      "correct": 117,
+      "flag_rate": 0.12,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.3933333333333333,
+      "latency_samples": 10,
+      "mean_input_tokens": 207.94,
+      "mean_latency_ms": 1770.5554583968478,
+      "mean_output_tokens": 47.35166666666667,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.033333333333333326,
+      "pairwise_agreement": 0.9666666666666667,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Irrelevant": {
+          "precision": 0.5340909090909091,
+          "predicted": 176,
+          "recall": 0.9894736842105263,
+          "support": 95
+        },
+        "Relevant": {
+          "precision": 0.9583333333333334,
+          "predicted": 24,
+          "recall": 0.21904761904761905,
+          "support": 105
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.585,
+        0.58,
+        0.58
+      ],
+      "task": "privacy_policy_qa",
+      "total_input_tokens": 124764,
+      "total_output_tokens": 28411,
+      "unanimity_rate": 0.95
+    },
+    {
+      "accuracy": 0.795,
+      "accuracy_ci95": [
+        0.7337430189543738,
+        0.8451382383109382
+      ],
+      "accuracy_natural": null,
+      "arm": "C",
+      "correct": 159,
+      "flag_rate": 0.345,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.78,
+      "latency_samples": 10,
+      "mean_input_tokens": 291.5,
+      "mean_latency_ms": 2254.096029003267,
+      "mean_output_tokens": 101.78333333333333,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.046666666666666634,
+      "pairwise_agreement": 0.9533333333333334,
+      "parse_failure_rate": 0.0016666666666666668,
+      "per_label": {
+        "Contradiction": {
+          "precision": 0.7175572519083969,
+          "predicted": 131,
+          "recall": 0.9591836734693877,
+          "support": 98
+        },
+        "Entailment": {
+          "precision": 0.9420289855072463,
+          "predicted": 69,
+          "recall": 0.6372549019607843,
+          "support": 102
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.815,
+        0.795,
+        0.775
+      ],
+      "task": "sara_entailment",
+      "total_input_tokens": 174900,
+      "total_output_tokens": 61070,
+      "unanimity_rate": 0.93
+    },
+    {
+      "accuracy": 0.9361702127659575,
+      "accuracy_ci95": [
+        0.828373857036585,
+        0.9780546149654928
+      ],
+      "accuracy_natural": null,
+      "arm": "C",
+      "correct": 44,
+      "flag_rate": 0.574468085106383,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.9716312056737588,
+      "latency_samples": 10,
+      "mean_input_tokens": 329.6595744680851,
+      "mean_latency_ms": 2169.810458397842,
+      "mean_output_tokens": 90.822695035461,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 141,
+      "n_cases": 47,
+      "noise_floor": 0.0,
+      "pairwise_agreement": 1.0,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "No": {
+          "precision": 0.9,
+          "predicted": 20,
+          "recall": 0.9473684210526315,
+          "support": 19
+        },
+        "Yes": {
+          "precision": 0.9629629629629629,
+          "predicted": 27,
+          "recall": 0.9285714285714286,
+          "support": 28
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.9361702127659575,
+        0.9361702127659575,
+        0.9361702127659575
+      ],
+      "task": "telemarketing_sales_rule",
+      "total_input_tokens": 46482,
+      "total_output_tokens": 12806,
+      "unanimity_rate": 1.0
+    },
+    {
+      "accuracy": 0.885,
+      "accuracy_ci95": [
+        0.8333528305500862,
+        0.9221362679148123
+      ],
+      "accuracy_natural": 0.7175604434866227,
+      "arm": "C",
+      "correct": 177,
+      "flag_rate": 0.91,
+      "flag_rate_natural": 0.36861309707066214,
+      "format_violation_rate": 0.93,
+      "latency_samples": 10,
+      "mean_input_tokens": 379.005,
+      "mean_latency_ms": 1661.1358374997508,
+      "mean_output_tokens": 53.031666666666666,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.013333333333333308,
+      "pairwise_agreement": 0.9866666666666667,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Arbitration": {
+          "precision": 0.75,
+          "predicted": 20,
+          "recall": 1.0,
+          "support": 15
+        },
+        "Choice of law": {
+          "precision": 1.0,
+          "predicted": 22,
+          "recall": 0.9166666666666666,
+          "support": 24
+        },
+        "Content removal": {
+          "precision": 1.0,
+          "predicted": 18,
+          "recall": 0.782608695652174,
+          "support": 23
+        },
+        "Contract by using": {
+          "precision": 1.0,
+          "predicted": 19,
+          "recall": 0.8260869565217391,
+          "support": 23
+        },
+        "Jurisdiction": {
+          "precision": 0.9565217391304348,
+          "predicted": 23,
+          "recall": 0.9565217391304348,
+          "support": 23
+        },
+        "Limitation of liability": {
+          "precision": 0.8846153846153846,
+          "predicted": 26,
+          "recall": 1.0,
+          "support": 23
+        },
+        "Other": {
+          "precision": 0.8888888888888888,
+          "predicted": 18,
+          "recall": 0.6956521739130435,
+          "support": 23
+        },
+        "Unilateral change": {
+          "precision": 0.8333333333333334,
+          "predicted": 24,
+          "recall": 0.8695652173913043,
+          "support": 23
+        },
+        "Unilateral termination": {
+          "precision": 0.7333333333333333,
+          "predicted": 30,
+          "recall": 0.9565217391304348,
+          "support": 23
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.89,
+        0.885,
+        0.88
+      ],
+      "task": "unfair_tos",
+      "total_input_tokens": 227403,
+      "total_output_tokens": 31819,
+      "unanimity_rate": 0.98
+    },
+    {
+      "accuracy": 0.7423076923076923,
+      "accuracy_ci95": [
+        0.71047917763021,
+        0.7717611985543877
+      ],
+      "accuracy_natural": null,
+      "arm": "C",
+      "correct": 579,
+      "flag_rate": 0.4371794871794872,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.685042735042735,
+      "latency_samples": 50,
+      "mean_input_tokens": 295.55641025641023,
+      "mean_latency_ms": 2009.096890859655,
+      "mean_output_tokens": 68.64700854700855,
+      "mean_thinking_tokens": null,
+      "model_id": "claude-sonnet-4-5-20250929",
+      "n_calls": 2340,
+      "n_cases": 780,
+      "noise_floor": 0.029059829059829068,
+      "pairwise_agreement": 0.9709401709401709,
+      "parse_failure_rate": 0.00042735042735042735,
+      "per_label": null,
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.7448717948717949,
+        0.7410256410256411,
+        0.7333333333333333
+      ],
+      "task": "ALL",
+      "total_input_tokens": 691602,
+      "total_output_tokens": 160634,
+      "unanimity_rate": 0.9564102564102565
+    },
+    {
+      "accuracy": 0.6165413533834586,
+      "accuracy_ci95": [
+        0.5317374956859631,
+        0.694802035925514
+      ],
+      "accuracy_natural": null,
+      "arm": "D",
+      "correct": 82,
+      "flag_rate": 0.2706766917293233,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.0,
+      "latency_samples": 10,
+      "mean_input_tokens": 418.9172932330827,
+      "mean_latency_ms": 1446.3714207013254,
+      "mean_output_tokens": 101.18045112781955,
+      "mean_thinking_tokens": 0,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 399,
+      "n_cases": 133,
+      "noise_floor": 0.05012531328320802,
+      "pairwise_agreement": 0.949874686716792,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Ambiguous": {
+          "precision": 0.5555555555555556,
+          "predicted": 72,
+          "recall": 0.6779661016949152,
+          "support": 59
+        },
+        "No": {
+          "precision": 0.6,
+          "predicted": 25,
+          "recall": 0.5555555555555556,
+          "support": 27
+        },
+        "Yes": {
+          "precision": 0.75,
+          "predicted": 36,
+          "recall": 0.574468085106383,
+          "support": 47
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.631578947368421,
+        0.6390977443609023,
+        0.6390977443609023
+      ],
+      "task": "insurance_policy_interpretation",
+      "total_input_tokens": 167148,
+      "total_output_tokens": 40371,
+      "unanimity_rate": 0.924812030075188
+    },
+    {
+      "accuracy": 0.64,
+      "accuracy_ci95": [
+        0.5714152811080027,
+        0.7033080274246877
+      ],
+      "accuracy_natural": null,
+      "arm": "D",
+      "correct": 128,
+      "flag_rate": 0.175,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.0,
+      "latency_samples": 10,
+      "mean_input_tokens": 278.78,
+      "mean_latency_ms": 1458.555454101588,
+      "mean_output_tokens": 67.46166666666667,
+      "mean_thinking_tokens": 0,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.00666666666666671,
+      "pairwise_agreement": 0.9933333333333333,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Irrelevant": {
+          "precision": 0.5696969696969697,
+          "predicted": 165,
+          "recall": 0.9894736842105263,
+          "support": 95
+        },
+        "Relevant": {
+          "precision": 0.9714285714285714,
+          "predicted": 35,
+          "recall": 0.3238095238095238,
+          "support": 105
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.64,
+        0.645,
+        0.645
+      ],
+      "task": "privacy_policy_qa",
+      "total_input_tokens": 167268,
+      "total_output_tokens": 40477,
+      "unanimity_rate": 0.99
+    },
+    {
+      "accuracy": 0.895,
+      "accuracy_ci95": [
+        0.8448196796327683,
+        0.9302925122987511
+      ],
+      "accuracy_natural": null,
+      "arm": "D",
+      "correct": 179,
+      "flag_rate": 0.45,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.7233333333333334,
+      "latency_samples": 10,
+      "mean_input_tokens": 397.755,
+      "mean_latency_ms": 2078.464766498655,
+      "mean_output_tokens": 210.15,
+      "mean_thinking_tokens": 0,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.05500000000000005,
+      "pairwise_agreement": 0.945,
+      "parse_failure_rate": 0.04,
+      "per_label": {
+        "Contradiction": {
+          "precision": 0.8761904761904762,
+          "predicted": 105,
+          "recall": 0.9387755102040817,
+          "support": 98
+        },
+        "Entailment": {
+          "precision": 0.9666666666666667,
+          "predicted": 90,
+          "recall": 0.8529411764705882,
+          "support": 102
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.895,
+        0.87,
+        0.89
+      ],
+      "task": "sara_entailment",
+      "total_input_tokens": 238653,
+      "total_output_tokens": 126090,
+      "unanimity_rate": 0.925
+    },
+    {
+      "accuracy": 0.8936170212765957,
+      "accuracy_ci95": [
+        0.7740573054021261,
+        0.9536952181119439
+      ],
+      "accuracy_natural": null,
+      "arm": "D",
+      "correct": 42,
+      "flag_rate": 0.5319148936170213,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.0,
+      "latency_samples": 10,
+      "mean_input_tokens": 440.8510638297872,
+      "mean_latency_ms": 1670.2480416017352,
+      "mean_output_tokens": 127.43971631205673,
+      "mean_thinking_tokens": 0,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 141,
+      "n_cases": 47,
+      "noise_floor": 0.04255319148936165,
+      "pairwise_agreement": 0.9574468085106383,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "No": {
+          "precision": 0.8181818181818182,
+          "predicted": 22,
+          "recall": 0.9473684210526315,
+          "support": 19
+        },
+        "Yes": {
+          "precision": 0.96,
+          "predicted": 25,
+          "recall": 0.8571428571428571,
+          "support": 28
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.8936170212765957,
+        0.9148936170212766,
+        0.851063829787234
+      ],
+      "task": "telemarketing_sales_rule",
+      "total_input_tokens": 62160,
+      "total_output_tokens": 17969,
+      "unanimity_rate": 0.9361702127659575
+    },
+    {
+      "accuracy": 0.875,
+      "accuracy_ci95": [
+        0.8219857495007822,
+        0.9138802554974955
+      ],
+      "accuracy_natural": 0.8322367795907973,
+      "arm": "D",
+      "correct": 175,
+      "flag_rate": 0.875,
+      "flag_rate_natural": 0.24848629972975747,
+      "format_violation_rate": 0.0,
+      "latency_samples": 10,
+      "mean_input_tokens": 509.465,
+      "mean_latency_ms": 1447.779383098532,
+      "mean_output_tokens": 70.48333333333333,
+      "mean_thinking_tokens": 0,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 600,
+      "n_cases": 200,
+      "noise_floor": 0.01666666666666672,
+      "pairwise_agreement": 0.9833333333333333,
+      "parse_failure_rate": 0.0,
+      "per_label": {
+        "Arbitration": {
+          "precision": 0.7894736842105263,
+          "predicted": 19,
+          "recall": 1.0,
+          "support": 15
+        },
+        "Choice of law": {
+          "precision": 1.0,
+          "predicted": 22,
+          "recall": 0.9166666666666666,
+          "support": 24
+        },
+        "Content removal": {
+          "precision": 0.9473684210526315,
+          "predicted": 19,
+          "recall": 0.782608695652174,
+          "support": 23
+        },
+        "Contract by using": {
+          "precision": 1.0,
+          "predicted": 15,
+          "recall": 0.6521739130434783,
+          "support": 23
+        },
+        "Jurisdiction": {
+          "precision": 0.9583333333333334,
+          "predicted": 24,
+          "recall": 1.0,
+          "support": 23
+        },
+        "Limitation of liability": {
+          "precision": 0.9565217391304348,
+          "predicted": 23,
+          "recall": 0.9565217391304348,
+          "support": 23
+        },
+        "Other": {
+          "precision": 0.76,
+          "predicted": 25,
+          "recall": 0.8260869565217391,
+          "support": 23
+        },
+        "Unilateral change": {
+          "precision": 0.7,
+          "predicted": 30,
+          "recall": 0.9130434782608695,
+          "support": 23
+        },
+        "Unilateral termination": {
+          "precision": 0.8695652173913043,
+          "predicted": 23,
+          "recall": 0.8695652173913043,
+          "support": 23
+        }
+      },
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.87,
+        0.88,
+        0.87
+      ],
+      "task": "unfair_tos",
+      "total_input_tokens": 305679,
+      "total_output_tokens": 42290,
+      "unanimity_rate": 0.975
+    },
+    {
+      "accuracy": 0.7769230769230769,
+      "accuracy_ci95": [
+        0.746390269841942,
+        0.8047415886547411
+      ],
+      "accuracy_natural": null,
+      "arm": "D",
+      "correct": 606,
+      "flag_rate": 0.46282051282051284,
+      "flag_rate_natural": null,
+      "format_violation_rate": 0.18547008547008548,
+      "latency_samples": 50,
+      "mean_input_tokens": 402.0974358974359,
+      "mean_latency_ms": 1620.2838132003671,
+      "mean_output_tokens": 114.18675213675213,
+      "mean_thinking_tokens": 0,
+      "model_id": "claude-sonnet-5-5",
+      "n_calls": 2340,
+      "n_cases": 780,
+      "noise_floor": 0.031196581196581197,
+      "pairwise_agreement": 0.9688034188034188,
+      "parse_failure_rate": 0.010256410256410256,
+      "per_label": null,
+      "refusal_rate": 0.0,
+      "repeat_accuracies": [
+        0.7782051282051282,
+        0.7782051282051282,
+        0.7769230769230769
+      ],
+      "task": "ALL",
+      "total_input_tokens": 940908,
+      "total_output_tokens": 267197,
+      "unanimity_rate": 0.9551282051282052
+    }
+  ],
+  "refusals": {
+    "A": {
+      "judge_not_refusal": 1
+    },
+    "C": {
+      "judge_not_refusal": 1
+    },
+    "D": {
+      "judge_not_refusal": 24
+    }
+  },
+  "run_id": "20261012T222853Z"
+}

@@ -42,12 +42,12 @@ def describe(rows: list[DiffRow], cases: dict[str, Case], tasks: dict[str, TaskS
     for row in rows:
         if row.category == "same":
             continue
-        verdict = judge.ask(
-            "judge_diff", f"{pair[0]}>{pair[1]}|{row.case_id}", row.case_id, row.task, 0,
-            judge_prompt(row, cases[row.case_id], tasks[row.task]),
-        )
+        ref = f"{pair[0]}>{pair[1]}|{row.case_id}"
+        verdict = judge.ask("judge_diff", ref, row.case_id, row.task, 0, judge_prompt(row, cases[row.case_id], tasks[row.task]))
         if verdict is None:
-            row.judge_nature, row.judge_sentence = "not_judged", ""
+            # The judge answered but not in valid JSON, or it was never asked (budget spent, no client).
+            answered = ("judge_diff", ref) in judge.recorded
+            row.judge_nature, row.judge_sentence = ("judge_unparseable" if answered else "not_judged"), ""
             continue
         nature = verdict.get("nature")
         row.judge_nature = nature if nature in NATURES else "unparsed"

@@ -1,0 +1,94 @@
+{
+  "arms": {
+    "A": {
+      "label": "Sonnet 4.5, temperature 0",
+      "params": {
+        "max_tokens": 512,
+        "model": "claude-sonnet-4-5-20250929",
+        "temperature": 0.0
+      }
+    },
+    "B": {
+      "label": "Sonnet 5.5, API defaults",
+      "params": {
+        "max_tokens": 16000,
+        "model": "claude-sonnet-5-5"
+      }
+    },
+    "C": {
+      "label": "Sonnet 4.5, temperature 1.0",
+      "params": {
+        "max_tokens": 512,
+        "model": "claude-sonnet-4-5-20250929",
+        "temperature": 1.0
+      }
+    },
+    "D": {
+      "label": "Sonnet 5.5, thinking off",
+      "params": {
+        "max_tokens": 512,
+        "model": "claude-sonnet-5-5",
+        "thinking": {
+          "type": "between_tools"
+        }
+      }
+    }
+  },
+  "artifacts": {
+    "cases.jsonl": "33962164501beb6f45d9318cb2298790489b65ee08fe545cb012582c4ed0220c",
+    "cases.meta.json": "fcb5e5d6eb136fc833b62dfdef741262d486dc314951d10871b8738c2e540748",
+    "config.yaml": "b9a6514c6b45dd04e159f0c91824a62835e555a3fda3cf1fad3b973826f5adda",
+    "dry_run.json": "fd02a3d7ccf26e566196df0ad6d29968a4c9c17dc56f54d6a14a4f64926f174f",
+    "models_snapshot.json": "e03b77d5087c06c26c13f544efc88b710eb7a86b71be9d516b25f63ffa6ccbe9",
+    "prompts/consumer_protection_rule.txt": "6253f453d7d8359635d692c09a2877d548ea1eba1a32af2b595d0756eb0f419b",
+    "prompts/insurance_coverage.txt": "2dacaa67be5df020a435a4b142e6fefdcbf79b5ffe90f5bcb32113640ec6d651",
+    "prompts/judge_diff.txt": "c488297d1672818032565be99d6779c8cb6af025605ff0158fe26ee3ddedb70a",
+    "prompts/judge_refusal.txt": "ef55692d190f0674fe3b218caecf440463eee45d61c3b82b898699cb028448d3",
+    "prompts/privacy_policy.txt": "293c6e9337a103b58f15a7ea762a997b56957a81a5ccd18d2c9d4769d58de64d",
+    "prompts/tax_statute_entailment.txt": "d4d9c6c7f1cc500db2004402d1359ea5431e3ac8ba15d58a2eabcf598fc8bb7c",
+    "prompts/unfair_contract_terms.txt": "36677495c739c21d401ae9fa72600950bb9bb4a42dc455237b375a3ec87c7d72",
+    "tasks.yaml": "4a49c21398f994a1c13ab1214c2474009769102ffe49d115e7b5eda83bd72801"
+  },
+  "cost_cap_usd": 35.0,
+  "created_at": "2026-10-12T22:28:53.176954+00:00",
+  "decomposition": {
+    "factors": [
+      "temperature",
+      "model",
+      "thinking"
+    ],
+    "path": [
+      "A",
+      "C",
+      "D",
+      "B"
+    ]
+  },
+  "drop_order": [
+    "D"
+  ],
+  "headline": [
+    "A",
+    "B"
+  ],
+  "judge_model": "claude-haiku-5-5",
+  "judge_params": {
+    "max_tokens": 300,
+    "model": "claude-haiku-5-5",
+    "thinking": {
+      "type": "disabled"
+    }
+  },
+  "model_a": "claude-sonnet-4-5-20250929",
+  "model_b": "claude-sonnet-5-5",
+  "n_runs": 3,
+  "pinned_models": [
+    "claude-haiku-5-5",
+    "claude-sonnet-4-5-20250929",
+    "claude-sonnet-5-5"
+  ],
+  "python_version": "3.12.14",
+  "run_id": "20261012T222853Z",
+  "sdk_version": "1.13.0",
+  "seed": 42
+}

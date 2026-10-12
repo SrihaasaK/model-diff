@@ -17,7 +17,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.ticker import MaxNLocator  # noqa: E402
 
-from ..diff.differ import CATEGORIES  # noqa: E402
+from ..diff.differ import CATEGORIES, classify  # noqa: E402
 from ..score.metrics import ALL_TASKS, FinalAnswer  # noqa: E402
 from ..score.scoring import RunData  # noqa: E402
 from ..score.stats import mcnemar_exact  # noqa: E402
@@ -98,6 +98,7 @@ def categories_chart(by_task: dict[str, dict[str, int]], totals: dict[str, int],
     fig, ax = plt.subplots(figsize=(9, 0.55 * len(tasks) + 1.8), dpi=160, facecolor=SURFACE)
     _style(ax)
     ys = list(range(len(tasks)))[::-1]
+    widest = max(sum(v for k, v in c.items() if k != "same") for c in counts.values())
     labelled: set[str] = set()
     for y, task in zip(ys, tasks):
         left = 0
@@ -108,10 +109,12 @@ def categories_chart(by_task: dict[str, dict[str, int]], totals: dict[str, int],
             label = category if category not in labelled else None
             labelled.add(category)
             ax.barh(y, n, left=left, color=SERIES[i], height=0.6, edgecolor=SURFACE, linewidth=2, zorder=2, label=label)
-            if n >= 3:
+            if n >= max(3, 0.05 * widest):  # only where the number fits inside its segment
                 ax.text(left + n / 2, y, str(n), ha="center", va="center", fontsize=8, color=INK)
             left += n
-        ax.text(left + 0.5, y, f"{left} of {totals[task]} changed", va="center", fontsize=8, color=INK_SECONDARY)
+        label_changes = left - counts[task].get("format_drift", 0)
+        note = f"{label_changes} label, {counts[task].get('format_drift', 0)} format only, of {totals[task]}"
+        ax.text(left + widest * 0.01, y, note, va="center", fontsize=8, color=INK_SECONDARY)
     ax.set_yticks(ys, [short(t).replace("\n", " ") for t in tasks])
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     ax.xaxis.grid(True, color=GRID, linewidth=0.8)
@@ -120,12 +123,53 @@ def categories_chart(by_task: dict[str, dict[str, int]], totals: dict[str, int],
     handles, names = ax.get_legend_handles_labels()
     order = [names.index(c) for c in CHANGE_CATEGORIES if c in names]
     ax.legend([handles[i] for i in order], [names[i] for i in order], frameon=False, fontsize=8,
-              loc="upper left", bbox_to_anchor=(0, -0.12 - 0.02 * len(tasks)), ncol=3, labelcolor=INK)
-    widest = max(sum(v for k, v in c.items() if k != "same") for c in counts.values())
-    ax.set_xlim(0, widest * 1.35 + 2)
+              loc="upper left", bbox_to_anchor=(0, -0.16), ncol=4, labelcolor=INK)
+    ax.set_xlim(0, widest * 1.45 + 2)
     fig.tight_layout()
     fig.savefig(path, facecolor=SURFACE)
     plt.close(fig)
+
+
+def format_drift_split(answers: dict[tuple[str, str], FinalAnswer], base: str, other: str) -> tuple[int, int, int]:
+    """format_drift cases split into: only base broke strict format, only other did, one side unparseable."""
+    base_only = other_only = unparseable = 0
+    for (arm, case_id), a in answers.items():
+        if arm != base or classify(a, answers[(other, case_id)]) != "format_drift":
+            continue
+        b = answers[(other, case_id)]
+        if a.outcome != b.outcome:
+            unparseable += 1
+        elif not a.format_ok_majority:
+            base_only += 1
+        else:
+            other_only += 1
+    return base_only, other_only, unparseable
+
+
+def violation_shapes(data: RunData, arm: str) -> Counter:
+    """How an arm's responses missed the strict format: code fences, extra text, or no parseable label."""
+    shapes: Counter = Counter()
+    for r in data.records:
+        if r.kind == "subject" and r.arm == arm and r.error is None and not r.format_ok:
+            if not r.parse_ok:
+                shapes["no parseable label"] += 1
+            elif r.raw_response.strip().startswith("```"):
+                shapes["JSON in a Markdown code fence"] += 1
+            else:
+                shapes["text before or after the JSON"] += 1
+    return shapes
+
+
+def max_token_stops(data: RunData) -> dict[str, dict]:
+    """Per arm: subject calls that hit max_tokens, how many lost their label, and in which tasks."""
+    out: dict[str, dict] = {}
+    for r in data.records:
+        if r.kind == "subject" and r.arm in data.arms and r.stop_reason == "max_tokens":
+            entry = out.setdefault(r.arm, {"calls": 0, "unparsed": 0, "tasks": Counter()})
+            entry["calls"] += 1
+            entry["unparsed"] += not r.parse_ok
+            entry["tasks"][r.task] += 1
+    return out
 
 
 def spend(data: RunData) -> dict:
@@ -154,6 +198,8 @@ def build(data: RunData, scores: dict, summary: dict, answers: dict[tuple[str, s
     n_cases = len(data.cases)
     changed_cases = round(headline["final_disagreement"][ALL_TASKS] * n_cases)
     thinking_note = "" if b_all["mean_thinking_tokens"] is None else f"{other} thinking: {b_all['mean_thinking_tokens']:,.0f}"
+    drift_base, drift_other, drift_unparseable = format_drift_split(answers, base, other)
+    truncated = max_token_stops(data)
 
     accuracy_chart(metrics, (base, other), arm_labels, tasks, out_dir / "accuracy_by_task.png")
     totals = {t: sum(1 for c in data.cases if c.task == t) for t in tasks} | {ALL_TASKS: n_cases}
@@ -184,7 +230,8 @@ def build(data: RunData, scores: dict, summary: dict, answers: dict[tuple[str, s
         "|---|---|---|---|",
         f"| Accuracy, all tasks (95% Wilson CI) | {ci(a_all)} | {ci(b_all)} | {pts(a_all['accuracy'], b_all['accuracy'])} "
         f"(exact McNemar p = {p_value:.3g}; {only_a} cases only {base} got right, {only_b} only {other}) |",
-        f"| Cases whose final answer changed | | | {changed_cases} of {n_cases} ({pct(headline['final_disagreement'][ALL_TASKS])}) |",
+        f"| Cases whose final answer (label) changed | | | {changed_cases} of {n_cases} ({pct(headline['final_disagreement'][ALL_TASKS])}) |",
+        f"| Cases with the same label but a change in strict JSON compliance | | | {drift_base + drift_other} of {n_cases} |",
         f"| Noise floor: chance two runs of the same arm disagree | {pct(a_all['noise_floor'])} | {pct(b_all['noise_floor'])} | |",
         f"| Single runs of {base} and {other} disagree | | | {pct(headline['single_run_disagreement'][ALL_TASKS])} of run pairs |",
         f"| Parse failures (per call) | {pct(a_all['parse_failure_rate'], 2)} | {pct(b_all['parse_failure_rate'], 2)} | "
@@ -257,6 +304,19 @@ def build(data: RunData, scores: dict, summary: dict, answers: dict[tuple[str, s
     for category in CATEGORIES:
         row = [str(by_task.get(t, {}).get(category, 0)) for t in tasks]
         lines.append(f"| `{category}` | " + " | ".join(row) + f" | {headline['categories'].get(category, 0)} |")
+    shapes = {arm: violation_shapes(data, arm) for arm in (base, other)}
+    lines += [
+        "",
+        f"Of the {headline['categories'].get('format_drift', 0)} `format_drift` cases, {drift_base + drift_other} kept the "
+        f"same label and changed only strict JSON compliance: in {drift_base} the majority of {base}'s repeats broke the "
+        f"format and {other}'s did not, and in {drift_other} the reverse. In {drift_unparseable}, one side's answer could "
+        "not be parsed at all. How each arm's responses missed the requested format (per call): "
+        + "; ".join(
+            f"{arm}: " + (", ".join(f"{name} {n}" for name, n in shapes[arm].most_common()) or "none")
+            for arm in (base, other)
+        )
+        + ". A lenient parser reads these labels; a strict one would reject them.",
+    ]
     natures = summary["judge_natures"]
     if natures:
         lines += [
@@ -378,10 +438,31 @@ def build(data: RunData, scores: dict, summary: dict, answers: dict[tuple[str, s
         "which cannot run deterministically. Its answers are recorded once and reused, and a human review sample is provided.",
         "- **Reference labels** are LegalBench's. Some are contestable (the insurance task's labels come from crowd "
         "agreement, including an explicit \"ambiguous\" class), so accuracy measures agreement with them.",
-        "- **One point in time.** Model behaviour behind a pinned ID can still change; the models-list snapshot "
+        "- **One point in time.** Model behavior behind a pinned ID can still change; the models-list snapshot "
         "records what the API reported when the run started.",
         f"- **Latency** comes from {a_all['latency_samples']} sequential calls per arm plus any direct fallback calls, "
         "not from the batch, and depends on load at the time.",
+    ]
+    if truncated:
+        per_arm = "; ".join(
+            f"arm {arm} {e['calls']} ({', '.join(f'`{t}` {n}' for t, n in e['tasks'].most_common())}; "
+            f"{e['unparsed']} without a parseable label)"
+            for arm, e in sorted(truncated.items())
+        )
+        lines.append(
+            f"- **Output limit.** Calls that stopped at their arm's `max_tokens` limit: {per_arm}. Those without a "
+            "label count as parse failures, which understates the arm on that task and touches the attribution "
+            "steps that involve it. Truncated answers are reasoning written into the visible response before the JSON."
+        )
+    for task in stratified:
+        shares = data.natural_shares()[task]
+        top_label = max(shares, key=shares.get)
+        sampled_top = sum(1 for c in data.cases if c.task == task and c.gold_label == top_label)
+        lines.append(
+            f"- **Reweighting.** The reweighted `{task}` figures give {pct(shares[top_label])} of the weight to the "
+            f"{sampled_top} sampled `{top_label}` cases, so they are much less certain than the unweighted ones."
+        )
+    lines += [
         "",
         "## Cost",
         "",
