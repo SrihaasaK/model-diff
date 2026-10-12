@@ -15,7 +15,7 @@ from typing import Any, Callable
 
 import anthropic
 
-from .api import with_backoff
+from .api import sdk_kwargs, with_backoff
 from .config import Config
 from .prompts import prompt_sha256
 from .record.recorder import Recorder
@@ -80,7 +80,7 @@ class Judge:
             request = {**self.params, "system": system, "messages": messages}
             start = time.perf_counter()
             try:
-                message = with_backoff(lambda: self.client.messages.create(**request), echo=self.echo)
+                message = with_backoff(lambda: self.client.messages.create(**sdk_kwargs(request)), echo=self.echo)
             except anthropic.APIError as exc:
                 self.echo(f"  judge call failed for {subject_ref}: {type(exc).__name__}")
                 self.skipped += 1

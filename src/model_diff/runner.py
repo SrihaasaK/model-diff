@@ -24,7 +24,7 @@ from typing import Any, Callable
 
 import anthropic
 
-from .api import with_backoff
+from .api import sdk_kwargs, with_backoff
 from .config import Config, load_config
 from .data.cases import Case
 from .estimate import pilot_cases, probe_cases
@@ -311,7 +311,7 @@ class Runner:
 
         def attempt() -> Any:
             start = time.perf_counter()
-            message = self.client.messages.create(**request)
+            message = self.client.messages.create(**sdk_kwargs(request))
             timing["ms"] = (time.perf_counter() - start) * 1000
             return message
 

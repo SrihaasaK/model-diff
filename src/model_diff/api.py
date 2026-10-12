@@ -21,6 +21,24 @@ def make_client() -> anthropic.Anthropic:
     return anthropic.Anthropic(api_key=load_api_key(), max_retries=0)
 
 
+SAMPLING_KEYS = ("temperature", "top_p", "top_k")
+
+
+def sdk_kwargs(request: dict) -> dict:
+    """Keyword arguments for messages.create() that send exactly this request.
+
+    The 1.x SDK removed the sampling parameters from messages.create(), but the
+    API still honours them on models that accept them (Sonnet 4.5 among them),
+    so they travel in extra_body, which is merged into the request JSON as is.
+    Batch requests need no change: the SDK forwards their params dict as given.
+    """
+    kwargs = {k: v for k, v in request.items() if k not in SAMPLING_KEYS}
+    sampling = {k: request[k] for k in SAMPLING_KEYS if k in request}
+    if sampling:
+        kwargs["extra_body"] = sampling
+    return kwargs
+
+
 @dataclass(frozen=True)
 class ModelStatus:
     role: str
