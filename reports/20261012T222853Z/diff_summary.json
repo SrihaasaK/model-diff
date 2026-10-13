@@ -49,7 +49,7 @@
       }
     ]
   },
-  "chain_head": "b718cc499855d36a7be589b6514741256ddc484d14192e6922478b4b3cc03ba3",
+  "chain_head": "142a627cd7aa27b7e0f87087409832a9d23ece4c14d7537b6a82bef962f1c151",
   "headline": [
     "A",
     "B"
@@ -57,7 +57,7 @@
   "judge": {
     "asked_now": 0,
     "not_judged": 0,
-    "spent_usd_total": 0.0689385
+    "spent_usd_total": 0.0728203
   },
   "judge_natures": {
     "format_change": 260,

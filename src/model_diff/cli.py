@@ -182,14 +182,18 @@ def run(
         raise typer.Exit(code=2)
 
 
+OFFLINE = typer.Option(False, "--offline", help="Make no API call: reuse recorded judge answers; rules decide the rest.")
+
+
 @app.command()
-def score(run_id: str, config: Path = CONFIG) -> None:
+def score(run_id: str, config: Path = CONFIG, offline: bool = OFFLINE) -> None:
     """Decide refusals (rules plus judge), compute per-arm and per-task metrics, write scores.json."""
     from .pipeline import score_run
 
     cfg = load_config(config)
     run_dir = cfg.paths.runs / run_id
-    scores = score_run(run_dir, checked_client(load_config(run_dir / "config.yaml")), typer.echo)
+    client = None if offline else checked_client(load_config(run_dir / "config.yaml"))
+    scores = score_run(run_dir, client, typer.echo)
     judge = scores["judge"]
     typer.echo(f"Judge: {judge['asked_now']} refusal checks asked now, {judge['not_judged']} not judged; "
                f"{judge['spent_usd']:.4f} USD judge spend in total.")
@@ -197,17 +201,30 @@ def score(run_id: str, config: Path = CONFIG) -> None:
 
 
 @app.command("diff")
-def diff_cmd(run_id: str, config: Path = CONFIG) -> None:
+def diff_cmd(run_id: str, config: Path = CONFIG, offline: bool = OFFLINE) -> None:
     """Compare the headline arms case by case, have the judge describe each change, and attribute it."""
     from .pipeline import diff_run, headline_lines
 
     cfg = load_config(config)
     run_dir = cfg.paths.runs / run_id
-    summary = diff_run(run_dir, checked_client(load_config(run_dir / "config.yaml")), typer.echo)
+    client = None if offline else checked_client(load_config(run_dir / "config.yaml"))
+    summary = diff_run(run_dir, client, typer.echo)
     scores = json.loads((run_dir / "scores.json").read_text(encoding="utf-8"))
     for line in headline_lines(scores, summary):
         typer.echo(line)
     typer.echo(f"Wrote diffs.csv, diffs_sample_for_review.csv, and diff_summary.json in {run_dir}.")
+
+
+@app.command("describe-sample")
+def describe_sample_cmd(run_id: str, config: Path = CONFIG) -> None:
+    """Have the judge describe each model-only change in the review sample (one recorded call per case)."""
+    from .pipeline import describe_sample
+    from .record.chain import verify_run
+
+    cfg = load_config(config)
+    run_dir = cfg.paths.runs / run_id
+    asked = describe_sample(run_dir, checked_client(load_config(run_dir / "config.yaml")), typer.echo)
+    typer.echo(f"Judge calls made now: {asked}. Chain head: {verify_run(run_dir).head}")
 
 
 @app.command()
@@ -216,8 +233,41 @@ def report(run_id: str, config: Path = CONFIG) -> None:
     from .pipeline import report_run
 
     cfg = load_config(config)
-    out = report_run(cfg.paths.runs / run_id)
-    typer.echo(f"Wrote {out}, accuracy_by_task.png, and diff_categories_by_task.png.")
+    # Which way is "stricter" per task is a reading of the task, kept in the repo's task file;
+    # it labels the direction of change and changes no number.
+    stricter = {t: s.stricter_when for t, s in load_tasks(cfg.paths.tasks).tasks.items() if s.stricter_when}
+    out = report_run(cfg.paths.runs / run_id, stricter, f"`stricter_when` in {cfg.paths.tasks}")
+    typer.echo(f"Wrote {out}, per_task.md, attribution.md, accuracy_by_task.png, and diff_categories_by_task.png.")
+
+
+@app.command()
+def reliability(
+    run_id: str,
+    config: Path = CONFIG,
+    differ_caveat: str = typer.Option("", help="Caveat sentence about what the differ missed, for the report."),
+    unreliable_label: list[str] = typer.Option([], help="A judge label the author reads as unreliable (repeatable)."),
+    held_label: list[str] = typer.Option([], help="A judge label the author reads as having held (repeatable)."),
+) -> None:
+    """Judge-vs-human agreement on the confirmed review sample. Offline."""
+    from .pipeline import reliability_run
+
+    cfg = load_config(config)
+    try:
+        rel = reliability_run(cfg.paths.runs / run_id, differ_caveat, tuple(unreliable_label), tuple(held_label))
+    except ValueError as err:
+        raise SystemExit(str(err)) from err
+    typer.echo(f"Judge matched the reference on {rel['agree']} of {rel['n_reviewed']} ({rel['agreement']:.1%}); "
+               f"{rel['agreement_judged']:.1%} of the {rel['n_judged']} parseable judge answers.")
+
+
+@app.command()
+def publish(run_id: str, config: Path = CONFIG) -> None:
+    """Copy a run's public outputs to reports/<run_id>/ with a README that anchors the run. Offline."""
+    from .pipeline import publish_run
+
+    cfg = load_config(config)
+    for path in publish_run(cfg.paths.runs / run_id, Path("reports") / run_id):
+        typer.echo(f"  {path}")
 
 
 @app.command()

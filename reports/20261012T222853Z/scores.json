@@ -1,5 +1,5 @@
 {
-  "chain_head": "a2308922b7f05c1e473fc01b1abc0012eda1efc990c8fa9733c4bb124ab76c4d",
+  "chain_head": "b718cc499855d36a7be589b6514741256ddc484d14192e6922478b4b3cc03ba3",
   "completeness": {
     "A": {
       "expected_calls": 2340,
@@ -24,9 +24,9 @@
   },
   "dropped_arms": [],
   "judge": {
-    "asked_now": 26,
+    "asked_now": 0,
     "not_judged": 0,
-    "spent_usd": 0.0027396
+    "spent_usd": 0.0689385
   },
   "kept_arms": [
     "A",

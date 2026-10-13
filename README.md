@@ -49,9 +49,12 @@ uv run model-diff sample                   # after approval: seeded sample to da
 uv run model-diff dry-run                  # exact input tokens (free), expected cost, cap decision
 uv run model-diff run                      # preflight, pilot batch, cost re-projection, main batch, latency probes
 uv run model-diff run --run-id <run_id>    # resume an interrupted run without re-sending anything
-uv run model-diff score <run_id>           # refusal detection, metrics, noise floor
-uv run model-diff diff <run_id>            # change categories, judge descriptions, attribution, review sample
-uv run model-diff report <run_id>          # report.md and two charts (offline)
+uv run model-diff score <run_id>           # refusal detection, metrics, noise floor (--offline: no API calls)
+uv run model-diff diff <run_id>            # change categories, judge descriptions, attribution, review sample (--offline)
+uv run model-diff describe-sample <run_id> # judge descriptions for the model-only review sample (one call per row)
+uv run model-diff reliability <run_id>     # judge vs reference labels on the confirmed sample (offline)
+uv run model-diff report <run_id>          # report.md, per_task.md, attribution.md, two charts (offline)
+uv run model-diff publish <run_id>         # public outputs to reports/<run_id>/ with the chain head (offline)
 uv run model-diff verify <run_id>          # re-walk the hash chain (offline)
 ```
 
@@ -80,8 +83,13 @@ Each run lives in `runs/<run_id>/`:
 | `manifest.jsonl`, `HEAD.json` | the hash chain over `calls.jsonl` |
 | `state.json` | run progress, batch IDs, and the pilot's cost projection |
 | `refusals.json`, `scores.json`, `final_answers.csv` | scoring |
-| `diffs.csv`, `diffs_sample_for_review.csv`, `diff_summary.json` | diffs; the sample has blank `human_verdict` and `notes` columns |
-| `report.md`, `accuracy_by_task.png`, `diff_categories_by_task.png` | the report |
+| `diffs.csv`, `diffs_C_vs_D.csv`, `diff_summary.json` | diffs for the headline pair and the model-only pair |
+| `diffs_sample_for_review.csv`, `judge_reliability.json` | the model-only review sample, with blank `rule_label`, `rule_note`, `human_verdict`, and `notes` columns, and the judge's agreement with the confirmed labels |
+| `report.md`, `per_task.md`, `attribution.md`, `accuracy_by_task.png`, `diff_categories_by_task.png` | the report |
+| `examples.md` | a few vetted cases, quoted verbatim or paraphrased, written per run and published with the report |
+
+`publish` copies only the aggregate outputs and `examples.md` to `reports/<run_id>/`, plus a
+README holding the chain head and the `verify` command.
 
 ## Tamper evidence
 
@@ -115,8 +123,9 @@ uv run pytest
 ```
 
 The suite makes no network calls. It uses small synthetic fixtures, a fake client shaped like
-the Anthropic SDK (covering run, resume, cap stops, batch adoption, score, diff, report, and
-verify end to end), and the real SDK on a mock transport to check exactly what is sent.
+the Anthropic SDK (covering run, resume, cap stops, batch adoption, score, diff, report, judge
+reliability, publish, and verify end to end), and the real SDK on a mock transport to check
+exactly what is sent.
 
 ## Data and licensing
 

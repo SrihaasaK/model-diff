@@ -280,3 +280,199 @@ Rejected: redefining `format_drift` to exclude same-label cases now that it domi
 counts. That would change a category fixed in D8 after seeing the results. Re-drawing the review
 sample with equal shares per category, so that label changes outnumber format-only ones, is left
 to the author.
+
+## D26. The model-only comparison and why its parameters differ (2026-10-12, author request)
+
+The report's primary comparison is arm C (Sonnet 4.5) against arm D (Sonnet 5.5). This is the
+step on the attribution path whose intended difference is the model. Both arms get identical
+prompts and run at temperature 1.0, without thinking, with a 512-token output limit. Their
+request parameters are not byte-identical:
+
+- Arm C sends `temperature: 1.0`. Arm D sends no temperature, so Sonnet 5.5 uses its API default
+  of 1.0, the only value it accepts.
+- Arm D sends `thinking: {type: between_tools}`, Sonnet 5.5's documented way to turn off
+  up-front thinking. Sonnet 4.5 does not think unless asked, so arm C sends nothing.
+
+Each difference expresses the same intended setting in the form each model accepts. The report
+lists the differences rather than calling the settings identical.
+
+Two consequences:
+
+- 5 of arm D's final answers on `sara_entailment` are unparseable. Its reasoning, written into
+  the visible answer, ran past 512 tokens. These count as wrong for Sonnet 5.5, so they understate
+  it in the model-only comparison.
+- The next step on the path (D → B) changes thinking and also raises `max_tokens` from 512 to
+  16,000. The attribution table lists both.
+
+## D27. Direction of change per task (2026-10-12)
+
+A changed answer (model-only pair) moves toward the flag when Sonnet 5.5 gives a flag label and
+Sonnet 4.5 did not, and away in the reverse case. Changes between two flag labels, between two
+non-flag labels, or with no label on one side are counted separately. A task is called "more
+flags" or "fewer flags" when at least 5 changes cross the flag boundary and at least two thirds
+cross it the same way. Otherwise it is "mixed", or "too few changes to call" below 5.
+
+"Stricter" and "more lenient" are used only where a flag is an adverse finding. This is recorded
+as `stricter_when` in `data/tasks.yaml`, added after the run. It is a reading of the task and
+changes no number:
+
+- `telemarketing_sales_rule` and `unfair_tos`: more flags is stricter.
+- `insurance_policy_interpretation`: fewer claims judged covered is stricter.
+- `privacy_policy_qa` and `sara_entailment`: a flag is not adverse, so the raw direction is
+  reported.
+
+The thresholds were set before the per-task directions were read. Rejected: judge natures as the
+direction, because they exist only for the A-vs-B pair.
+
+## D28. Review sample: equal shares, model-only pair, no judge descriptions (2026-10-12, author request)
+
+`diffs_sample_for_review.csv` is redrawn from the model-only pair with up to 6 cases per change
+category. Spare slots go round-robin to categories that have rows left, and unchanged cases are
+never added. `refusal_change` is empty in this run, so its 6 slots were redistributed.
+
+The judge described changes only for the A-vs-B pair, and this step makes no new API calls. The
+sampled rows therefore have `judge_nature: not_judged`. Measuring judge-vs-human agreement on
+this sample needs either judge calls for these 30 cases or a different comparison; that is the
+author's decision.
+
+## D29. Latency out of the tables; offline mode; publish set (2026-10-12, author request)
+
+- Mean latency is dropped from every report table. It is still in `scores.json`, and probe spend
+  stays in the cost table.
+- `score --offline` and `diff --offline` make no API call. They reuse recorded judge answers, and
+  rules decide anything unrecorded.
+- `model-diff publish` copies only aggregate files (report, per-task and attribution tables,
+  charts, scores, diff summary, run config, models snapshot, head) to `reports/<run_id>/`, with a
+  README holding the chain head and the `verify` command.
+
+## D30. Judge descriptions for the model-only review sample (2026-10-12, author decision)
+
+The author authorized one judge pass on the 30 sampled model-only changes, choosing option 1 at
+the review stop point. `model-diff describe-sample` asked `claude-haiku-5-5` once per sampled
+case, using the same prompt as the A-vs-B descriptions, for 0.0039 USD. The 30 calls are recorded
+in the run's hash chain with `subject_ref` `C>D|<case_id>`. The chain now holds 10,152 records,
+and the head moved from `b718cc49…03ba3` to `142a627c…f1c151`.
+
+No other model-only change was judged. `diff --offline` fills recorded descriptions only, and
+`write_review_sample` keeps any `human_verdict` and `notes` already entered when the sample file is
+rewritten. One judge answer was not valid JSON and is labelled `judge_unparseable`.
+
+The judge's sentences quote case text, including people's names and a product name. They stay in
+the gitignored run directory.
+
+## D31. Judge reliability: how the reference labels were made (2026-10-12, author decisions)
+
+The judge's `nature` label on the 30 model-only review rows is compared with a reference label.
+The reference labels are not independent human labels, and the report never calls them that.
+They were made in three steps:
+
+1. The harness author's agent wrote a rule-based first pass (`rule_label`, `rule_note`) by applying
+   the author's direction rule. The rule is stored verbatim in `score/reliability.py` and printed
+   verbatim in the report. The agent had already seen the judge's labels, so the first pass is
+   not blind to them.
+2. The author confirmed row 1 individually, then confirmed rows 2–30 in batch against a reviewer
+   rule table of expected labels (`review_rule_table.json`, in the run directory).
+3. Rows that disagreed with the table, plus rows 6 and 8, were printed in full and the author
+   resolved each one individually.
+
+The method sentence in the report says exactly this.
+
+Result, recomputed by `model-diff reliability` from the review file:
+- The judge matched the reference on 23 of 30 rows (76.7%), and on 23 of the 29 rows where its
+  answer parsed (79.3%).
+- The reference differs from the judge on 7 rows. The author's review changed 5 of the agent's
+  first-pass labels (rows 6, 14, 21, 23 and 28).
+- The judge's `misread_instruction` label matched in 0 of 3 uses. On this sample, read it as a
+  weak signal.
+
+The report gives raw agreement with a per-judge-label table and lists every disagreement with
+its reviewer note. A chance-corrected statistic was rejected: with 30 rows spread over six labels,
+it would be unstable, and the full table carries more information.
+
+The report's first draft said "the author overrode 7 judge labels". That wording was corrected
+before publishing, because some of those 7 reference labels came from the rule table rather than
+from an individual ruling.
+
+The author added a differ caveat, now in the report: same-label rows 25, 28 and 29 carry minor
+reasoning differences that the differ does not detect, so `format_drift` slightly understates
+substantive change.
+
+Rejected alternative: a blind relabel by a second reviewer. It would be the stronger design, but
+no second reviewer was available here; the caveat stands in its place.
+
+## D32. `examples.md`: three vetted examples (2026-10-12, author request)
+
+All three examples are `privacy_policy_qa` cases from the model-only review sample, so each has
+both a judge label and a reference label:
+- Example 1 (`-04433`): Sonnet 4.5 right, Sonnet 5.5 wrong.
+- Example 2 (`-01104`): the opposite direction on the same task.
+- Example 3 (`-09917`): `format_drift`.
+
+The text says that examples 1 and 2 are a 2-against-13 pair on that task, not an even split, so
+the pair does not suggest the task has no direction.
+
+No input names a company, person or product, so all inputs are quoted verbatim and none is
+paraphrased. The six responses were checked the same way. A one-off script outside the repo
+rendered the file from `cases.jsonl` and `calls.jsonl`, checked every quoted response against
+`diffs_C_vs_D.csv`, and computed every count in the text. The case IDs are listed, so anyone with
+the run directory can check the quotes against the chain.
+
+Rejected alternative: a `model-diff examples` command. The selection is a one-time editorial
+choice, and a command would add an interface for it.
+
+Because `examples.md` is public, the published README no longer says that no public file holds
+case text. It now names `examples.md` as the one exception; a test covers both wordings.
+
+## D33. Public-safety pass before the evidence-pack commit (2026-10-12, author request)
+
+The scan covered every tracked or about-to-be-tracked file. That is wider than the folders the
+author named; it adds `DECISIONS.md`, `src/`, `tests/` and the fixtures. It also covered
+`git log -p --all` (6 commits).
+
+Name check:
+- Candidates were words capitalized mid-sentence in all 780 run inputs, the full case pool and
+  every recorded response, plus the people's names and the product name known from the judge's
+  sentences (D30).
+- A second pass took every capitalized or all-caps token in the inputs, wherever it sits.
+- Every hit is an ordinary word, a label, a category name, or a statute or regulation name.
+  None of the known names appears in a public file or in history.
+
+Key check:
+- The only key-shaped string is the dummy `api_key="test…"` in `tests/test_wire.py`.
+- The other hits are LegalBench URLs and SHA-256 digests.
+
+Case-text check:
+- Verbatim 40-character spans of case inputs appear only in `examples.md`.
+- History holds no input spans. Its 24 response-span matches are prompt phrases that models
+  repeat back.
+
+Nothing needed changing. One judgment call is left to the author: example 2's clause mentions "a
+particular genetic trait". It names no company, but it hints at the kind of service.
+
+The failed first launch's directory, `runs/20261012T222724Z` (frozen inputs only, no
+`calls.jsonl`, no API calls), was deleted at the author's request. This supersedes "left in place"
+in D23.
+
+## D34. Three wording edits before the evidence-pack commit (2026-10-12, author decisions)
+
+1. **Direction rule on relevance tasks.** On `privacy_policy_qa`, the author reads the direction
+   rule as "more likely to mark Relevant = more_lenient". On relevance tasks, "more flags" and
+   "requires more before accepting" point opposite ways. The sentence is stored in
+   `score/reliability.py` (`DIRECTION_READINGS`), and the report adds it to the judge-reliability
+   method only for tasks the run includes. All four `privacy_policy_qa` label changes in the
+   review sample already follow this reading, in both the judge's labels and the reference
+   labels (rows 3, 4, 11, 12).
+   `data/tasks.yaml` still sets no `stricter_when` for this task, so `per_task.md` reports its
+   direction as "more flags" without a stricter or lenient reading. Setting it is a separate
+   decision.
+2. **`examples.md` gains a line on the 13/2 split.** The author's draft said example 2 was one
+   of the two answers that moved away from Relevant. The recorded answers show the opposite:
+   example 2 (`-01104`) moved toward Relevant, and example 1 (`-04433`) moved away. The line
+   therefore names example 1, and the generator asserts both directions.
+3. **Which judge labels to trust.** The author reads `misread_instruction` (0 of 3) as unreliable,
+   and `stricter` (7 of 8) and `more_lenient` (7 of 7) as the labels that held. That reading is
+   recorded through `reliability --unreliable-label/--held-label`, and the counts are filled from
+   the data. `reliability` refuses any reading the counts contradict: an "unreliable" label must
+   have matched under half its uses, and a "held" label over half. The sentence also names any
+   other label that matched every use (`format_change`, 4 of 4), so "the labels that held" does
+   not read as a complete list.

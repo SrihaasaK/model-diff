@@ -25,6 +25,7 @@ tasks:
     positive_labels: ["Yes"]
     label_map: {"A": "Yes", "B": "No", "C": "Ambiguous"}
     input_fields: [["policy", "Policy"], ["claim", "Claim"]]
+    stricter_when: fewer_flags   # finding a claim not covered is the stricter reading
     sampling: random
 
   sara_entailment:
@@ -67,6 +68,7 @@ tasks:
     labels: ["Yes", "No"]
     positive_labels: ["Yes"]
     input_fields: [["text", "Facts"]]
+    stricter_when: more_flags    # finding a violation is the stricter reading
     sampling: random
 
   unfair_tos:
@@ -98,6 +100,7 @@ tasks:
       - "Unilateral termination"
       - "Contract by using"
     input_fields: [["text", "Clause"]]
+    stricter_when: more_flags    # flagging a clause as potentially unfair is the stricter reading
     # 91% of the test split is "Other"; a random draw would hold about one
     # clause per unfair category. Stratified sampling takes equal shares per
     # label so every category is measured.

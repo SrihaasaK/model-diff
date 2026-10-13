@@ -9,6 +9,7 @@ from model_diff.diff.differ import (
     classify,
     decompose,
     diff_answers,
+    equal_share_sample,
     final_disagreement,
     review_sample,
     single_run_disagreement,
@@ -148,6 +149,18 @@ def test_review_sample_is_stratified_seeded_and_spread_across_tasks():
     assert set(counts) == set(CATEGORIES) - {"same"}
     assert counts["refusal_change"] == 1
     assert {r.task for r in first} == {"t1", "t2", "t3"}
+
+
+def test_equal_share_sample_takes_six_per_category_and_redistributes_spare_slots():
+    rows = synthetic_rows()  # A_right_B_wrong 30, A_wrong_B_right 20, both_wrong 6, format_drift 3, refusal_change 1
+    categories = [c for c in CATEGORIES if c != "same"]
+    sample = equal_share_sample(rows, categories, per_category=6, n=30, seed=42)
+    counts = Counter(r.category for r in sample)
+    # 6 + 6 + 6 + 3 + 1 = 22 at first; the 8 spare slots go round-robin to categories with rows left.
+    assert counts == {"A_right_B_wrong": 10, "A_wrong_B_right": 10, "both_wrong_differently": 6,
+                      "format_drift": 3, "refusal_change": 1}
+    assert "same" not in counts and len(sample) == 30
+    assert [r.case_id for r in sample] == [r.case_id for r in equal_share_sample(rows, categories, 6, 30, 42)]
 
 
 def test_review_sample_tops_up_with_unchanged_cases_when_few_differ():

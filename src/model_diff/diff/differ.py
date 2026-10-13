@@ -219,6 +219,24 @@ def _spread_across_tasks(rows: list[DiffRow], k: int, rng: random.Random) -> lis
     return picked
 
 
+def equal_share_sample(rows: list[DiffRow], categories: list[str], per_category: int, n: int, seed: int) -> list[DiffRow]:
+    """Up to per_category rows from each category, spread across tasks; spare slots go round-robin.
+
+    A category with fewer rows than its share gives its spare slots to the
+    others, one at a time in category order, until n rows are taken or none remain.
+    Unchanged ("same") cases are never added.
+    """
+    rng = random.Random(seed)
+    pools = {c: _spread_across_tasks([r for r in rows if r.category == c], len(rows), rng) for c in categories}
+    quota = {c: min(per_category, len(pools[c])) for c in categories}
+    while sum(quota.values()) < n and any(quota[c] < len(pools[c]) for c in categories):
+        for c in categories:
+            if sum(quota.values()) < n and quota[c] < len(pools[c]):
+                quota[c] += 1
+    chosen = [row for c in categories for row in pools[c][: quota[c]]]
+    return sorted(chosen, key=lambda r: (CATEGORIES.index(r.category), r.task, r.case_id))
+
+
 def review_sample(rows: list[DiffRow], n: int = 30, seed: int = 42) -> list[DiffRow]:
     """A seeded sample of differing cases, stratified by category and spread across tasks.
 

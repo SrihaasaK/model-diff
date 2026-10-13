@@ -24,6 +24,9 @@ class TaskSpec(BaseModel):
     label_map: dict[str, str] = Field(default_factory=dict)  # dataset label -> label shown to the model
     input_fields: list[tuple[str, str]] = Field(default_factory=list)  # (dataset column, heading or "")
     sampling: Literal["random", "stratified"] = "random"
+    # Which way is "stricter" for this task: more flags (e.g. more violations found) or fewer
+    # (e.g. fewer claims covered). Unset when a flag is not an adverse finding.
+    stricter_when: Literal["more_flags", "fewer_flags"] | None = None
 
     @model_validator(mode="after")
     def _labels_are_consistent(self) -> "TaskSpec":
