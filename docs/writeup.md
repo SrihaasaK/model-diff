@@ -47,7 +47,7 @@ For privacy_policy_qa, "more flags" means more clauses marked Relevant. The per-
 
 ## Three examples
 
-All three are privacy-policy cases, quoted verbatim from the recorded calls; none of the inputs names a company, person or product. The exact clause, question and both answers are in `reports/20261012T222853Z/examples.md`; the three quote blocks below are to be pasted from that file before publishing.
+All three are privacy-policy cases, quoted verbatim from the recorded calls; none of the inputs names a company, person or product. The exact clause, question and both answers are in `reports/20261012T222853Z/examples.md`; the three quote blocks are quoted below from that file.
 
 **Example 1 — privacy_policy_qa-04433. 4.5 right, 5.5 wrong, and against the task's own direction.** Sonnet 4.5 marked the clause Relevant; Sonnet 5.5 marked it Irrelevant. 13 of the 15 changed answers on this task moved toward Relevant; this is one of the two that moved the other way. It is the reason a per-task direction is not a per-case guarantee.
 
@@ -156,7 +156,7 @@ uv run model-diff verify 20261012T222853Z
 
 That recomputes the chain and fails if any record has been altered, dropped or reordered since the run. The per-call records and manifest live in the run directory, which is not in the public repository because it holds the raw case text and every raw response; it is available on request, with the dataset attributions it requires, to anyone who wants to check the head, and this dated post is the anchor the head is checked against. The published folder `reports/20261012T222853Z/` holds the report, per-task table, attribution, examples, both charts and the JSON the numbers above come from (`scores.json`, `diff_summary.json`, `run_config.json`, `models_snapshot.json`, `HEAD.json`). The public files contain no case text other than the three quoted examples and the paraphrased insurance case above.
 
-Repository: [link to be added when the remote is pushed]
+Repository: [github.com/SrihaasaK/model-diff](https://github.com/SrihaasaK/model-diff)
 
 ## What this means if your tool is on 4.5
 

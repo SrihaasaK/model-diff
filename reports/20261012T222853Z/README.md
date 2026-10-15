@@ -5,6 +5,8 @@ directory, which quotes the public source text, stays with the author.
 
 Chain head: `142a627cd7aa27b7e0f87087409832a9d23ece4c14d7537b6a82bef962f1c151` (10152 recorded API calls).
 
+`scores.json` carries the head at scoring time, `b718cc49…03ba3`, recorded before the 30 review-sample judge calls (DECISIONS.md D30), which do not enter the scores; `HEAD.json` holds the final head above.
+
 To anchor the run, compare this head with the one `verify` prints from the full run directory:
 
 ```sh
