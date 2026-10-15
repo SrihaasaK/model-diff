@@ -136,3 +136,7 @@ outputs quote that public text, so `data/cases.jsonl` and `runs/` are gitignored
 deterministically from `config.yaml`.
 
 Design decisions and rejected alternatives are logged in [`DECISIONS.md`](DECISIONS.md).
+
+## Data attribution
+
+Cases are from LegalBench ([`nguha/legalbench`](https://huggingface.co/datasets/nguha/legalbench), test split): `insurance_policy_interpretation`, `telemarketing_sales_rule` and `unfair_tos` under CC BY 4.0, `privacy_policy_qa` and `sara_entailment` under MIT, each task card linked in [`data/TASKS.md`](data/TASKS.md); the MIT license in [`LICENSE`](LICENSE) covers the harness code only, not the dataset text quoted in `reports/` and `docs/`.
