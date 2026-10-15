@@ -17,3 +17,6 @@ runs/
 
 .DS_Store
 data/token_counts.jsonl
+
+# Private business context read by local founder skills
+FOUNDER_CONTEXT.md

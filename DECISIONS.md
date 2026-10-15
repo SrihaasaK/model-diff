@@ -476,3 +476,20 @@ in D23.
    have matched under half its uses, and a "held" label over half. The sentence also names any
    other label that matched every use (`format_change`, 4 of 4), so "the labels that held" does
    not read as a complete list.
+
+## D35. Sonnet 4.5 retirement differs by platform (2026-10-14, author decision)
+
+The retirement date recorded in D10, D16 and `config.yaml`, 2026-11-30, covers only Anthropic-operated
+platforms: the Claude API, Claude Platform on AWS and Microsoft Foundry. It is still marked
+"tentative". Source: https://platform.claude.com/docs/en/about-claude/model-deprecations, checked
+2026-10-14. Partner clouds set their own schedules:
+- Amazon Bedrock lists `anthropic.claude-sonnet-4-5-20250929-v1:0` as Legacy from 2026-10-08,
+  with public extended access from 2027-01-08 and end of life on 2027-04-08. Source:
+  https://docs.aws.amazon.com/bedrock/latest/userguide/model-lifecycle-legacy.html, checked
+  2026-10-14.
+- Google Vertex AI lists it as generally available, with retirement "not sooner than"
+  2026-09-29 and no date announced. Source:
+  https://docs.cloud.google.com/vertex-ai/generative-ai/docs/partner-models/claude/sonnet-4-5,
+  last updated 2026-10-13.
+
+`docs/writeup.md` now states all three instead of a single November 30 retirement.

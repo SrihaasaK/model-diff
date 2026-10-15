@@ -6,7 +6,7 @@ Srihaasa Karyampudi · October 2026 · numbers from commit 4f8a3c2, run 20261012
 
 Replaying 780 public compliance cases through Sonnet 4.5 and Sonnet 5.5 with identical prompts, 16.3% of final answers changed against a 3% noise floor. The model switch alone drove 81 of the 112 answers that change in an unpinned upgrade, and the direction varied by rule area: two tasks flagged more often, one got more lenient, and two were mixed, with telemarketing down a net 2 cases of 47, too few to call.
 
-Sonnet 4.5 is deprecated and retires on November 30, 2026. Any tool still running on it will move to a newer model by then, and this is a measured look at the kind of change that move makes to compliance-style answers: not whether the new model is better on average (it is, by 3.5 points), but which answers change, in which direction, and whether the change can be told apart from run-to-run noise.
+Anthropic retires Sonnet 4.5 from its own API on November 30, 2026; Amazon Bedrock lists it as legacy from October 8, 2026 with end of life on April 8, 2027, and Google Vertex AI has announced no date. Any tool still running on it will move to a newer model within months, and this is a measured look at the kind of change that move makes to compliance-style answers: not whether the new model is better on average (it is, by 3.5 points), but which answers change, in which direction, and whether the change can be told apart from run-to-run noise.
 
 ## Headline numbers
 
@@ -160,6 +160,6 @@ Repository: [github.com/SrihaasaK/model-diff](https://github.com/SrihaasaK/model
 
 ## What this means if your tool is on 4.5
 
-If your product makes compliance-style calls on Sonnet 4.5, this is the kind of change to expect after November 30: about one answer in six different, better on average, with the direction depending on which rule the answer is about, and at least one area where the cases are too few to say which way it went. These are five public tasks with one prompt each, not your prompts or your cases. None of this shows up in an aggregate accuracy number, and none of it is in your logs unless you replayed a fixed suite before and after.
+If your product makes compliance-style calls on Sonnet 4.5, this is the kind of change to expect when it moves: about one answer in six different, better on average, with the direction depending on which rule the answer is about, and at least one area where the cases are too few to say which way it went. These are five public tasks with one prompt each, not your prompts or your cases. None of this shows up in an aggregate accuracy number, and none of it is in your logs unless you replayed a fixed suite before and after.
 
-I built the harness that produced these numbers and I am running it against adviser- and broker-dealer-facing tools before the retirement date. If you ship one and want the same comparison on your own prompts and a sample of your own cases, with an evidence pack you can hand a compliance reviewer, reply and I will send the details.
+I built the harness that produced these numbers and I am running it against adviser- and broker-dealer-facing tools while the old model can still be called. If you ship one and want the same comparison on your own prompts and a sample of your own cases, with an evidence pack you can hand a compliance reviewer, reply and I will send the details.
